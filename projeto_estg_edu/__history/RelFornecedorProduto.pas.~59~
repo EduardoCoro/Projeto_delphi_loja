@@ -1,0 +1,273 @@
+unit RelFornecedorProduto;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DB, ADODB, RLReport, pngimage;
+
+type
+  TTRelFornecedorProd = class(TForm)
+    rlpProduto: TRLReport;
+    RLBand5: TRLBand;
+    RLImage1: TRLImage;
+    RLLabel5: TRLLabel;
+    RLLabel6: TRLLabel;
+    RLLabel7: TRLLabel;
+    RLLabel8: TRLLabel;
+    RLBand8: TRLBand;
+    RLSystemInfo1: TRLSystemInfo;
+    RLSystemInfo2: TRLSystemInfo;
+    RLSystemInfo3: TRLSystemInfo;
+    RLSystemInfo4: TRLSystemInfo;
+    dsFornecedor: TDataSource;
+    QFornecedor: TADOQuery;
+    RLBand1: TRLBand;
+    rlTitulo: TRLLabel;
+    lbltitulo: TRLLabel;
+    RLGroup1: TRLGroup;
+    RLBand4: TRLBand;
+    RLPanel5: TRLPanel;
+    RLLabel11: TRLLabel;
+    RLPanel10: TRLPanel;
+    V: TRLLabel;
+    RLPanel16: TRLPanel;
+    RLLabel12: TRLLabel;
+    RLPanel17: TRLPanel;
+    RLLabel13: TRLLabel;
+    RLBand6: TRLBand;
+    RLPanel19: TRLPanel;
+    RLDBText5: TRLDBText;
+    RLPanel20: TRLPanel;
+    RLDBText6: TRLDBText;
+    RLPanel21: TRLPanel;
+    RLDBText7: TRLDBText;
+    RLPanel22: TRLPanel;
+    RLDBText8: TRLDBText;
+    RLDBText9: TRLDBText;
+    RLSubDetail1: TRLSubDetail;
+    QProdutos: TADOQuery;
+    DSProdutos: TDataSource;
+    RLBand2: TRLBand;
+    RLPanel1: TRLPanel;
+    RLLabel2: TRLLabel;
+    RLPanel2: TRLPanel;
+    RLLabel3: TRLLabel;
+    RLPanel3: TRLPanel;
+    RLLabel4: TRLLabel;
+    RLPanel4: TRLPanel;
+    RLLabel9: TRLLabel;
+    RLPanel11: TRLPanel;
+    lblStatus: TRLLabel;
+    RLBand3: TRLBand;
+    RLPanel6: TRLPanel;
+    RLDBText1: TRLDBText;
+    RLPanel7: TRLPanel;
+    RLDBText2: TRLDBText;
+    RLPanel8: TRLPanel;
+    rlPreco: TRLDBText;
+    RLPanel9: TRLPanel;
+    RLBDataValidade: TRLDBText;
+    RLPanel12: TRLPanel;
+    lbdAtivo: TRLDBText;
+    RLBand7: TRLBand;
+    RLPanel15: TRLPanel;
+    rbdResult: TRLDBResult;
+    RLBand9: TRLBand;
+    RLPanel13: TRLPanel;
+    RLDBResult1: TRLDBResult;
+    procedure QFornecedorATIVOGetText(Sender: TField; var Text: string;
+      DisplayText: Boolean);
+    procedure RLGroup1BeforePrint(Sender: TObject; var PrintIt: Boolean);
+    procedure rlPrecoBeforePrint(Sender: TObject; var AText: string;
+      var PrintIt: Boolean);
+    procedure RLBDataValidadeBeforePrint(Sender: TObject; var AText: string;
+      var PrintIt: Boolean);
+    procedure lbdAtivoBeforePrint(Sender: TObject; var AText: string;
+      var PrintIt: Boolean);
+  private
+    { Private declarations }
+    Filtro, Validade , Ordem : Integer;
+    procedure Carregadados(xFiltro, xValidade , xOrdem : Integer;  FORNECE : STRING);
+  public
+    { Public declarations }
+    procedure Chamatela(xFiltro, xValidade , xOrdem : Integer;  FORNECE : STRING);
+  end;
+
+var
+  TRelFornecedorProd: TTRelFornecedorProd;
+
+implementation
+
+uses
+ Funcoesdb, Funcoes;
+
+{$R *.dfm}
+
+procedure TTRelFornecedorProd.Chamatela(xFiltro: Integer; xValidade: Integer; xOrdem: Integer; FORNECE: string);
+var aux : string;
+begin
+  TRelFornecedorProd := TTRelFornecedorProd.Create(Application);
+  with TRelFornecedorProd do
+  begin
+    Filtro := xFiltro;
+    Validade := xValidade;
+    Ordem := xOrdem;
+    // Filtro
+    case xFiltro of
+      0: aux:= 'Filtrado por Ativo';
+      1: aux:= 'Filtrado por Inativo';
+      2: aux:= 'Filtrado por Todos';
+    end;
+    // Validade de Produto
+    case xValidade of
+      1: aux:= aux + ', Produto sem validade,';
+      2: aux:= aux + ', Produto com validade,';
+    end;
+    // ordenação
+    case xOrdem of
+      0: aux:= aux + ' Ordenado por Código';
+      1: aux:= aux + ' Ordenado por Nome';
+      2: aux:= aux + ' Ordenado por Produto de Maior Valor';
+      3: aux:= aux + ' Ordenado por Produto de Menor Valor';
+    end;
+    lbltitulo.Caption := aux;
+
+    Carregadados(xFiltro,xValidade,xOrdem,FORNECE);
+    rlpProduto.PreviewModal;
+  end;
+  FreeAndNil(TRelFornecedorProd);
+end;
+
+procedure TTRelFornecedorProd.lbdAtivoBeforePrint(Sender: TObject;
+  var AText: string; var PrintIt: Boolean);
+begin
+  if not QProdutos.IsEmpty then
+  begin
+    if QProdutos.FieldByName('SEM_VALIDADE').AsBoolean = True then
+    begin
+      Text := 'S';
+    end
+    else
+      Text := 'N';
+  end
+  else
+    Text := '';
+end;
+
+procedure TTRelFornecedorProd.Carregadados(xFiltro: Integer; xValidade : Integer ;xOrdem: Integer; FORNECE: string);
+begin
+  with QFornecedor do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT F.COD_FORNECEDOR, F.NOME, F.DDD, F.TELEFONE, F.CNPJ');
+    SQL.Add('FROM FORNECEDOR F');
+    SQL.Add('WHERE EXISTS(SELECT P.COD_FORNECEDOR FROM PRODUTO P WHERE P.COD_FORNECEDOR = F.COD_FORNECEDOR');
+    case Validade of
+      1: SQL.Add('AND P.SEM_VALIDADE = 1');
+      2: SQL.Add('AND P.SEM_VALIDADE = 0');
+    end;
+    case Filtro of
+      0: SQL.Add('AND P.ATIVO = 1');
+      1: SQL.Add('AND P.ATIVO = 0');
+    end;
+    SQL.Add(')');
+    // Busca por Fornecedor
+    if FORNECE <> '' then
+      SQL.Add('AND F.COD_FORNECEDOR = '+ StringTextSql(FORNECE));
+
+    //InputBox('','', SQL.Text);
+    Open;
+
+//    FieldByName('PRECO').OnGetText := QFornecedorPRECOGetText;
+//    FieldByName('SEM_VALIDADE').OnGetText := QFornecedorSEM_VALIDADEGetText;
+//    FieldByName('ATIVO').OnGetText := QFornecedorATIVOGetText;
+//    FieldByName('DATA_VALIDADE').OnGetText := QFornecedorDATA_VALIDADEGetText;
+  end;
+end;
+
+procedure TTRelFornecedorProd.QFornecedorATIVOGetText(Sender: TField; var Text: string;
+  DisplayText: Boolean);
+begin
+  if not QFornecedor.IsEmpty then
+  begin
+    if QFornecedor.FieldByName('ATIVO').AsBoolean = True then
+    begin
+      Text := 'Ativo';
+    end
+    else
+      Text := 'Inativo';
+  end
+  else
+    Text := '';
+end;
+
+procedure TTRelFornecedorProd.RLBDataValidadeBeforePrint(Sender: TObject;
+  var AText: string; var PrintIt: Boolean);
+begin
+  if not QProdutos.IsEmpty then
+  begin
+    if  QProdutos.FieldByName('DATA_VALIDADE').IsNull then
+    begin
+      RLBDataValidade.Font.Size := 8;
+      AText:= 'Não possui';
+    end
+    else
+    begin
+      RLBDataValidade.Font.Size := 9;
+      AText:= QProdutos.FieldByName('DATA_VALIDADE').AsString ;
+    end;
+  end;
+end;
+
+procedure TTRelFornecedorProd.RLGroup1BeforePrint(Sender: TObject;
+  var PrintIt: Boolean);
+begin
+with QProdutos do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT P.COD_PRODUTO,  P.DESCRICAO, P.PRECO, P.DATA_VALIDADE, P.ATIVO, P.SEM_VALIDADE, P.COD_FORNECEDOR, F.NOME, F.DDD, F.TELEFONE, F.CNPJ');
+    SQL.Add(', P.DATA_VALIDADE, P.ATIVO, P.SEM_VALIDADE, P.COD_FORNECEDOR, F.NOME');
+    SQL.Add('FROM PRODUTO P');
+    SQL.Add('INNER JOIN FORNECEDOR F ON P.COD_FORNECEDOR = F.COD_FORNECEDOR');
+    // FILTRAR ATIVO OU INATIVO
+    case Filtro of
+      0: SQL.Add('WHERE P.ATIVO = 1');
+      1: SQL.Add('WHERE P.ATIVO = 0');
+    end;
+    // Filtrar por produto com ou sem validade
+    case Validade of
+      1: SQL.Add('And P.SEM_VALIDADE = 1');
+      2: SQL.Add('And P.SEM_VALIDADE = 0');
+    end;
+    // Busca por Fornecedor
+
+    SQL.Add('AND F.COD_FORNECEDOR = '+ StringTextSql(QFornecedor.FieldByName('COD_FORNECEDOR').AsString));
+    // ORDENAÇÃO
+    case Ordem of
+      0: SQL.Add('ORDER BY COD_PRODUTO');
+      1: SQL.Add('ORDER BY DESCRICAO');
+      2: SQL.Add('ORDER BY P.PRECO DESC');    // MAIOR VALOR
+      3: SQL.Add('ORDER BY P.PRECO');        // Menor valor
+    end;
+    //InputBox('','', SQL.Text);
+    //ExecSQL;
+    Open;
+    if Filtro = 2 then
+    begin
+      lblStatus.Visible := True;
+      lbdAtivo.Visible := True;
+    end;
+  end;
+end;
+
+procedure TTRelFornecedorProd.rlPrecoBeforePrint(Sender: TObject;
+  var AText: string; var PrintIt: Boolean);
+begin
+  AText := FormatFloat('0.00', QProdutos.FieldByName('PRECO').AsFloat);
+end;
+
+end.
+

@@ -1,0 +1,234 @@
+unit ProdutoEstoque;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, ExtCtrls;
+
+type
+  TTEstoque = class(TForm)
+    Panel2: TPanel;
+    lblTitulo: TLabel;
+    Panel1: TPanel;
+    btnSalvar: TBitBtn;
+    btnCancelar: TBitBtn;
+    GroupBox1: TGroupBox;
+    Label2: TLabel;
+    Label5: TLabel;
+    Label7: TLabel;
+    edCodProduto: TEdit;
+    edNomeProduto: TEdit;
+    btnPesquisaProduto: TBitBtn;
+    btnLimpaP: TBitBtn;
+    GroupBox2: TGroupBox;
+    edQuantidade: TEdit;
+    procedure btnLimpaPClick(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnPesquisaProdutoClick(Sender: TObject);
+    procedure btnSalvarClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure edCodProdutoKeyPress(Sender: TObject; var Key: Char);
+    procedure edCodProdutoKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+  private
+    { Private declarations }
+    xCodProduto: Integer;
+    AcaoTela: String;
+    procedure CarregaDados;
+  public
+    { Public declarations }
+    function ChamaTela(pAcaoTela: string; CodProduto: Integer ): integer;
+  end;
+
+var
+  TEstoque: TTEstoque;
+
+implementation
+
+uses
+ DMPrincipal, Funcoesdb, Produto, Funcoes;
+
+{$R *.dfm}
+
+function TTEstoque.ChamaTela(pAcaoTela: string; CodProduto: Integer): integer;
+begin
+  TEstoque := TTEstoque.Create(Application);
+  with TEstoque DO
+  begin
+    xCodProduto:= CodProduto;
+    AcaoTela := pAcaoTela;
+    if AcaoTela = 'E' then {EDITAR}
+    begin
+      CarregaDados;
+      btnLimpaP.Enabled := False;
+      btnPesquisaProduto.Enabled := False;
+    end;
+    ShowModal;
+
+    if xCodProduto > 0 then
+      Result := xCodProduto;
+  end;
+  FreeAndNil(TEstoque);
+end;
+
+procedure TTEstoque.edCodProdutoKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key of
+    VK_F5:
+    begin
+      if (btnSalvar.Enabled) and (btnSalvar.Visible) then
+        btnSalvar.Click;
+    end;
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Enabled) and (btnCancelar.Visible) then
+        btnCancelar.Click;
+    end;
+  end;
+end;
+
+procedure TTEstoque.edCodProdutoKeyPress(Sender: TObject; var Key: Char);
+begin
+  if (key = #13) and not Empty(edCodProduto.Text) then
+  begin
+    with TDMPrincipal.QAux do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, ESTOQUE');
+      SQL.Add('FROM PRODUTO');
+      SQL.Add('WHERE COD_PRODUTO = '+ StringTextSql(edCodProduto.Text));
+      Open;
+
+      edNomeProduto.Text := FieldByName('DESCRICAO').AsString;
+      edQuantidade.Text := FieldByName('ESTOQUE').AsString;
+
+      if not IsEmpty then
+      begin
+        {passa os valores}
+        edCodProduto.ReadOnly := True;
+        btnPesquisaProduto.Enabled := False;
+        btnLimpaP.Enabled := True;
+        edQuantidade.ReadOnly := False;
+        if edQuantidade.CanFocus then
+          edQuantidade.SetFocus;
+      end
+      else
+      begin
+        EnviaMensagem('Nenhum registro encontrado!','', mtInformation, [mbok]);
+        btnLimpaP.Click;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+procedure TTEstoque.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key of
+    VK_F5:
+    begin
+      if (btnSalvar.Enabled) and (btnSalvar.Visible) then
+        btnSalvar.Click;
+    end;
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Enabled) and (btnCancelar.Visible) then
+        btnCancelar.Click;
+    end;
+    VK_F6:
+    begin
+      if(btnLimpaP.Enabled) and (btnLimpaP.Visible) then
+        btnLimpaP.Click;
+    end;
+    VK_F3:
+    begin
+      if(btnPesquisaProduto.Enabled) and (btnPesquisaProduto.Visible) then
+        btnPesquisaProduto.Click;
+    end;
+  end;
+end;
+
+procedure TTEstoque.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTEstoque.btnLimpaPClick(Sender: TObject);
+begin
+  edNomeProduto.Clear;
+  edCodProduto.Clear;
+  edQuantidade.Clear;
+  btnPesquisaProduto.Enabled:= True;
+  edCodProduto.ReadOnly := False;
+  if  edCodProduto.CanFocus then
+    edCodProduto.SetFocus;
+  btnLimpaP.Enabled := False;
+end;
+
+procedure TTEstoque.btnPesquisaProdutoClick(Sender: TObject);
+var Codigo : Integer;
+begin
+  Codigo := TProduto.ChamaTela(True);
+  if Codigo > 0 then
+  begin
+    //select nome, rg
+    with TDMPrincipal.QAux do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_PRODUTO, DESCRICAO, ESTOQUE');
+      SQL.Add('FROM PRODUTO');
+      SQL.Add('WHERE COD_PRODUTO = '+ IntToStr(Codigo) );
+      Open;
+
+      edCodProduto.Text := FieldByName('COD_PRODUTO').AsString;
+      edNomeProduto.Text := FieldByName('DESCRICAO').AsString;
+      edQuantidade.Text := FieldByName('ESTOQUE').AsString;
+
+      Close;
+      //ExecSQL;
+    end;
+    btnPesquisaProduto.Enabled:= False;
+    btnLimpaP.Enabled := True;
+    if  edQuantidade.CanFocus then
+      edQuantidade.SetFocus;
+  end;
+end;
+
+procedure TTEstoque.btnSalvarClick(Sender: TObject);
+begin
+  with TDMPrincipal.QAux do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('UPDATE PRODUTO');
+    SQL.Add('SET ESTOQUE = '+ StringTextSql(edQuantidade.Text));
+    SQL.Add('WHERE COD_PRODUTO = ' + StringTextSql(edCodProduto.Text));
+    ExecSQL;
+    EnviaMensagem('O Estoque do Produto '+ edNomeProduto.Text  +' foi Atualizado!', 'Atenção!', mtInformation,[mbOK] );
+  end;
+  Close;
+end;
+
+procedure TTEstoque.CarregaDados;
+begin
+  with TDMPrincipal.QAux do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_PRODUTO, DESCRICAO, ESTOQUE');
+    SQL.Add('FROM PRODUTO');
+    SQL.Add('WHERE COD_PRODUTO = ' + IntToStr(xCodProduto));
+    Open;
+    edCodProduto.Text := FieldByName('COD_PRODUTO').AsString;
+    edNomeProduto.Text := FieldByName('DESCRICAO').AsString;
+    edQuantidade.Text := FieldByName('ESTOQUE').AsString;
+    Close;
+  end;
+end;
+
+end.

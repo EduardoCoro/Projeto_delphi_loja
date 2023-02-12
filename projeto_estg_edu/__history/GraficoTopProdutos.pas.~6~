@@ -1,0 +1,63 @@
+unit GraficoTopProdutos;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, ExtCtrls, TeEngine, Series, TeeProcs, Chart,
+  DBChart;
+
+type
+  TTGraficoTopProdutos = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    btnCancelar: TBitBtn;
+    btnAntes: TBitBtn;
+    btnDepois: TBitBtn;
+    GraficoProdutos: TDBChart;
+    Series1: TBarSeries;
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnDepoisClick(Sender: TObject);
+    procedure btnAntesClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  TGraficoTopProdutos: TTGraficoTopProdutos;
+
+implementation
+
+{$R *.dfm}
+
+procedure TTGraficoTopProdutos.btnAntesClick(Sender: TObject);
+begin
+  GraficoProdutos.PreviousPage;
+end;
+
+procedure TTGraficoTopProdutos.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTGraficoTopProdutos.btnDepoisClick(Sender: TObject);
+begin
+  GraficoProdutos.NextPage;
+end;
+
+procedure TTGraficoTopProdutos.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key  of
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Enabled) and (btnCancelar.Visible) then
+        btnCancelar.Click;
+    end;
+  end;
+end;
+
+end.

@@ -1,0 +1,194 @@
+unit Configuracoes;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ComCtrls, Buttons, ExtCtrls, IniFiles;
+
+type
+  TTConfig = class(TForm)
+    FiltroRelCliente: TPanel;
+    Panel1: TPanel;
+    btnSalvar: TBitBtn;
+    btnCancelar: TBitBtn;
+    PageControl1: TPageControl;
+    pgCliente: TTabSheet;
+    pgProduto: TTabSheet;
+    GroupBox1: TGroupBox;
+    ckbCpf: TCheckBox;
+    ckbRg: TCheckBox;
+    GroupBox2: TGroupBox;
+    ckbContato: TCheckBox;
+    ckbCnpj: TCheckBox;
+    TabSheet1: TTabSheet;
+    GroupBox3: TGroupBox;
+    ckbValidade: TCheckBox;
+    TabSheet2: TTabSheet;
+    GroupBox4: TGroupBox;
+    ckbClitop: TCheckBox;
+    ckbClilist: TCheckBox;
+    GroupBox5: TGroupBox;
+    ckbProdtop: TCheckBox;
+    ckbprodrestoque: TCheckBox;
+    ckbprodlist: TCheckBox;
+    GroupBox6: TGroupBox;
+    ckbfortop: TCheckBox;
+    ckbForneprod: TCheckBox;
+    ckbforlist: TCheckBox;
+    procedure btnSalvarClick(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  private
+    { Private declarations }
+    Ini : TIniFile;
+  //Config de Cadastro de cliente
+    rg : boolean;
+    cpf : boolean;
+  //Config de cadastro de Fornecedores
+    Forcnpj : Boolean;
+    Forcontato : Boolean;
+  //Config de Cadastro de produto
+    ProdVal : Boolean;
+  // config relatorio
+    //cliente
+      clilist : boolean;
+      clitop :boolean;
+    //Produto
+      prodlist : Boolean;
+      prodtop : Boolean;
+      prodestoq : Boolean;
+    //Fornecedor
+      forlist : Boolean;
+      fortop : Boolean;
+      forprod : Boolean;
+  public
+    { Public declarations }
+    procedure Chamatela;
+  end;
+
+var
+  TConfig: TTConfig;
+
+implementation
+
+uses
+ Funcoes;
+
+{$R *.dfm}
+
+procedure TTConfig.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTConfig.btnSalvarClick(Sender: TObject);
+begin
+  //procedimento de escrita no arquivo .ini
+
+  //Config de Cliente
+  ini.WriteBool('Cliente','rg',ckbRg.Checked);
+  ini.WriteBool('Cliente','cpf',ckbCpf.Checked);
+  //Config de Fornecedor
+  ini.WriteBool('Fornecedor','cnpj',ckbCnpj.Checked);
+  ini.WriteBool('Fornecedor','contato',ckbContato.Checked);
+  //Config de Produto
+  ini.WriteBool('Produto','val', ckbValidade.Checked);
+
+  //Carrega info de Relatórios
+  //Cliente
+   ini.WriteBool('Cliente','rellist', ckbClilist);
+   ini.WriteBool('Cliente','reltop', ckbClitop);
+  //Produto
+   ini.WriteBool('Produto','rellist', ckbprodlist);
+   ini.WriteBool('Produto','reltop', ckbProdtop);
+   ini.WriteBool('Produto','relestoque', ckbprodrestoque);
+  //fornecedor
+   ini.WriteBool('Fornecedor','rellist', ckbforlist);
+   ini.WriteBool('Fornecedor','reltop', ckbfortop);
+   ini.WriteBool('Fornecedor','relforprod ', ckbForneprod);
+
+  EnviaMensagem('Configurações foram salvas!','',mtInformation, [mbOK]);
+  Close;
+end;
+
+procedure TTConfig.Chamatela;
+begin
+  TConfig := TTConfig.Create(Application);
+  with TConfig do
+  begin
+    ShowModal;
+  end;
+  FreeAndNil(TConfig);
+end;
+
+procedure TTConfig.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Ini.Free;
+end;
+
+procedure TTConfig.FormCreate(Sender: TObject);
+begin
+  //carrega arquivo .ini
+  ini := TIniFile.Create('D:\FOCUS\Ini\ConfigPrjEstagio.ini');
+
+  //carrega informações de cliente
+  if ini.ReadBool('Cliente','rg', rg) = True then
+    ckbRg.Checked := True;
+  if ini.ReadBool('Cliente','cpf', cpf) = True then
+    ckbCpf.Checked := True;
+
+  //carrega informações de Fornecedores
+  if ini.ReadBool('Fornecedor','cnpj', Forcnpj) = True then
+    ckbCnpj.Checked := True;
+  if ini.ReadBool('Fornecedor','contato', Forcontato) = True then
+    ckbContato.Checked := True;
+
+  //carrega informações de Produtos
+  if ini.ReadBool('Produto','val', ProdVal) then
+    ckbValidade.Checked := True;
+
+  //Carrega info de Relatórios
+  //Cliente
+  if ini.ReadBool('Cliente','rellist', clilist) = True then
+    ckbClilist.Checked := True;
+  if ini.ReadBool('Cliente','reltop', clitop) = True then
+    ckbClitop.Checked := True;
+  //Produto
+  if ini.ReadBool('Produto','rellist', prodlist) = True then
+    ckbprodlist.Checked := True;
+  if ini.ReadBool('Produto','reltop', prodtop) = True then
+    ckbProdtop.Checked := True;
+  if ini.ReadBool('Produto','relestoque', prodestoq) = True then
+    ckbprodrestoque.Checked := True;
+  //fornecedor
+  if ini.ReadBool('Fornecedor','rellist', forlist) = True then
+    ckbforlist.Checked := True;
+  if ini.ReadBool('Fornecedor','reltop', fortop) = True then
+    ckbfortop.Checked := True;
+  if ini.ReadBool('Fornecedor','relforprod ', forprod) = True then
+    ckbForneprod.Checked := True;
+
+
+end;
+
+procedure TTConfig.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key of
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Visible) and (btnCancelar.Enabled) then
+        btnCancelar.Click;
+    end;
+    VK_F5:
+    begin
+      if (btnSalvar.Visible) and (btnSalvar.Enabled) then
+        btnSalvar.Click;
+    end;
+  end;
+end;
+
+end.

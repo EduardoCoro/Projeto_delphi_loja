@@ -1,0 +1,164 @@
+unit CompraConsulta;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DB, ADODB, Grids, DBGrids, StdCtrls, ExtCtrls;
+
+type
+  TTCompraC = class(TForm)
+    Panel3: TPanel;
+    rbFiltro: TRadioGroup;
+    Panel2: TPanel;
+    lblDescricao: TLabel;
+    edPesquisa: TEdit;
+    btnLimpar: TButton;
+    Panel1: TPanel;
+    btnTransferir: TButton;
+    btnEditar: TButton;
+    btnExcluir: TButton;
+    btnFechar: TButton;
+    DBGrid: TDBGrid;
+    DtsCompraC: TDataSource;
+    QCompraC: TADOQuery;
+    procedure btnFecharClick(Sender: TObject);
+    procedure btnLimparClick(Sender: TObject);
+    procedure DBGridTitleClick(Column: TColumn);
+    procedure edPesquisaKeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+    CanClose : Boolean;
+    ColunaPesquisa : string;
+  public
+    { Public declarations }
+    procedure ChamarTela;
+  end;
+
+var
+  TCompraC: TTCompraC;
+
+implementation
+
+uses Cliente, Compra, DTMPRINCIPAL, Funcoes, Funcoesdb;
+
+{$R *.dfm}
+
+
+procedure TTCompraC.btnFecharClick(Sender: TObject);
+begin
+   begin
+    CanClose := False;
+    if MessageBox(Handle,'Deseja realmente sair da aplicação?','Fechar o formulário? ',MB_ICONQUESTION+MB_YESNO)=IDYES then
+      CanClose := True;
+
+    if CanClose = True then
+        Close;
+   end;
+end;
+
+procedure TTCompraC.btnLimparClick(Sender: TObject);
+begin
+edPesquisa.Clear;
+  QCompraC.Close;
+
+  rbFiltro.Buttons[0].Checked:=True;
+  rbFiltro.Buttons[1].Checked:=False;
+  rbFiltro.Buttons[2].Checked:=False;
+    rbFiltro.Refresh;
+    edPesquisa.SetFocus;
+end;
+
+procedure TTCompraC.ChamarTela;
+    begin
+       TCompra := TTCompra.Create(Application);
+       with TCompra do
+       begin
+        ShowModal;
+       end;
+       FreeAndNil(TCompra);
+end;
+
+
+
+
+procedure TTCompraC.DBGridTitleClick(Column: TColumn);
+var
+  I : Integer;
+begin
+   ColunaPesquisa := Column.FieldName;
+   lblDescricao.Caption := 'Digite um ' + Column.Title.Caption + ' ou * para todos e Tecle Enter';
+   btnLimpar.Click;
+
+   for I := 0 to DBGrid.Columns.Count - 1 do
+   begin
+      if DBGrid.Columns[I].FieldName = ColunaPesquisa then
+          DBGrid.Columns[I].Title.Font.Color := clRed
+      else
+          DBGrid.Columns[I].Title.Font.Color := clBlack;
+
+   end;
+end;
+
+
+
+
+
+procedure TTCompraC.edPesquisaKeyPress(Sender: TObject; var Key: Char);
+function GetCondicao():string; // FUNÇÃO P/ PEGAR A SINTAXE DE ACORDO COM O QUE USUÁRIO PREENCHEU
+  var aux : string;
+  begin
+    if edPesquisa.Tag = 0 then
+    begin
+      aux := 'WHERE ';
+      edPesquisa.Tag := 1;
+    end
+    else
+      aux := 'AND ';
+    Result := aux;
+  end;
+begin
+   edPesquisa.Tag := 0;
+   if (key = #13) and not Empty(edPesquisa.Text) then   // identificação do botão ENTER
+   begin
+     with QCompraC do
+     begin  // inserçao do comando no sql
+        Close;
+        SQL.Clear;
+        SQL.Add('SELECT P.COD_COMPRA,  P.COD_CLIENTE , C.NOME AS CLIENTE, P.DATA, P.VALOR_TOTAL');
+        SQL.Add('FROM COMPRA AS P');
+        SQL.Add('INNER JOIN CLIENTE AS C ON C.COD_CLIENTE = P.COD_CLIENTE');
+
+
+
+                  {
+        // IDENTIFICAR A SELEÇÃO DE ATIVO,INATIVO
+        case rbFiltro.ItemIndex of
+          0 : SQL.Add(GetCondicao + ' ATIVO = 1');
+          1 : SQL.Add(GetCondicao + ' ATIVO = 0');
+        end;
+                   }
+        if edPesquisa.Text <> '*' then
+        begin                                      // codigo do cliente
+          if (ColunaPesquisa = 'COD_COMPRA') or (ColunaPesquisa = 'DATA') OR (ColunaPesquisa = 'VALOR_TOTAL') then
+            SQL.Add({GetCondicao}'WHERE '+ ColunaPesquisa + ' = ' + StringTextSql(ColocaPonto( edPesquisa.Text)))
+          else if (ColunaPesquisa = 'COD_CLIENTE') then
+               SQL.Add('WHERE P.COD_CLIENTE = ' + StringTextSql( edPesquisa.Text))
+          else
+            SQL.Add({GetCondicao}'WHERE ' + ' C.NOME LIKE ' + StringTextSql('%' + edPesquisa.Text + '%'));
+
+
+
+         // if (ColunaPesquisa = 'CCLIENTE') then
+           //   SQL.Add({GetCondicao}'WHERE ' + ' C.COD_CLIENTE = ' + StringTextSql(edPesquisa.Text))
+
+        end;
+
+
+
+        Open;
+     end;
+   end;
+end;
+
+end.

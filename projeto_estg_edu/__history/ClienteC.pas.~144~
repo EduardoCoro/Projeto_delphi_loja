@@ -1,0 +1,280 @@
+unit ClienteC;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, Buttons, Mask, IniFiles;
+
+type
+  TTClienteC = class(TForm)
+    Panel2: TPanel;
+    Panel1: TPanel;
+    cbAtivo: TCheckBox;
+    btnSalvar: TBitBtn;
+    btnCancelar: TBitBtn;
+    GroupBox1: TGroupBox;
+    edtNome: TEdit;
+    Panel3: TPanel;
+    gpCpf: TGroupBox;
+    edCpf: TMaskEdit;
+    gpRg: TGroupBox;
+    edtRg: TMaskEdit;
+    procedure btnSalvarClick(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure edtNomeKeyPress(Sender: TObject; var Key: Char);
+    procedure edtNomeExit(Sender: TObject);
+    procedure edCpfExit(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+
+  private
+    { Private declarations }
+    contador : integer;
+    xCodCliente: Integer;
+    AcaoTela: String;
+    ArquivoINI : Tinifile;
+    rg : Boolean;
+    procedure DesabilitaComponentes;
+    procedure CarregaDados;
+  public
+    { Public declarations }
+    function ChamaTela(pAcaoTela: string ; CodCliente : Integer ): Integer;
+  end;
+
+var
+  TClienteC: TTClienteC;
+
+implementation
+
+uses Funcoes, Funcoesdb, DMPRINCIPAL;
+
+{$R *.dfm}
+
+{ TTClienteC }
+
+procedure TTClienteC.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTClienteC.btnSalvarClick(Sender: TObject);
+begin
+  //campo nome
+  if edtNome.Text <> '' then
+    if (Length(edtNome.Text) <= 1) then
+    begin
+      //Ação
+      EnviaMensagem('Nome Inválido, digite novamente!','',mtInformation,[mbOK]);
+      if edtNome.CanFocus then
+        edtNome.SetFocus;
+      exit;
+    end;
+  if Empty(edtNome.Text) then
+  begin
+    EnviaMensagem('Informe o Nome!', 'Informação...', mtInformation,[mbOK] );
+    if edtNome.CanFocus then
+      edtNome.SetFocus;
+    Exit;
+  end;
+
+  if (Empty(edtRg.Text) OR (edtRg.Text = '')) OR (Empty(edCpf.Text) OR (edCpf.Text = '   .   .   -  ')) then
+  begin
+    if (Empty(edtRg.Text) OR (edtRg.Text = '')) then
+    begin
+      // Leitura
+      if not ArquivoINI.ReadBool('Cliente','rg', rg ) = True then
+        EnviaMensagem('Informe o RG!', 'Informação...', mtInformation,[mbOK] );
+        if edtRg.CanFocus then
+          edtRg.SetFocus;
+        Exit;
+    end;
+    if (Empty(edCpf.Text) OR (edCpf.Text = '   .   .   -  ')) then
+    begin
+      EnviaMensagem('Informe o CPF!', 'Informação...', mtInformation,[mbOK] );
+      if edCpf.CanFocus then
+        edCpf.SetFocus;
+      Exit;
+    end;
+  end;
+
+  with TDMPrincipal.QAux do
+  begin
+    case AcaoTela[1] of
+      'I':        //INSERIR
+      begin
+        Close;
+        SQL.Clear;
+        SQL.Add('INSERT INTO CLIENTE(NOME, RG, CPF, ATIVO)');
+        SQL.Add('VALUES('+ StringTextSql(edtNome.Text));
+        SQL.Add(', '+ StringTextSql(edtRg.Text));
+        SQL.Add(', '+ StringTextSql(edCpf.Text));
+        sql.Add((', ' + BooleanTextSql(cbAtivo.Checked)));
+        SQL.Add(')');
+        ExecSQL;
+
+        xCodCliente := GetCodigoIdentity('CLIENTE');
+
+        EnviaMensagem('Cliente '+ edtNome.Text  +' está cadastrado!', 'Atenção!', mtInformation,[mbOK] );
+      end;
+      'E':              // EDITAR
+      begin
+        Close;
+        SQL.Clear;
+        SQL.Add('UPDATE CLIENTE');
+        SQL.Add('SET NOME = '+ StringTextSql(edtNome.Text) + ', RG = '+ StringTextSql(edtRg.Text) );
+        SQL.Add(', CPF = ' + StringTextSql(edCpf.Text));
+
+        if cbAtivo.Checked = True  then
+          SQL.Add( ', ATIVO = 1')
+        else
+          SQL.Add(', ATIVO = 0');
+
+        SQL.Add('WHERE COD_CLIENTE = '+ IntToStr(xCodCliente) );
+        ExecSQL;
+        EnviaMensagem('Cliente '+ edtNome.Text  +' está EDITADO!', 'Atenção!', mtInformation,[mbOK] );
+      end;
+    end;
+  end;
+  Close;
+end;
+
+procedure TTClienteC.CarregaDados;
+begin
+  with TDMPrincipal.QAux do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_CLIENTE, NOME, RG, ATIVO');
+    SQL.Add('FROM CLIENTE');
+    SQL.Add('WHERE COD_CLIENTE = ' + IntToStr(xCodCliente));
+    Open;
+
+    edtNome.Text := FieldByName('NOME').AsString;
+    edtRg.Text := FieldByName('RG').AsString;
+    cbAtivo.Checked := FieldByName('ATIVO').AsBoolean;
+    Close;
+  end;
+end;
+
+function TTClienteC.ChamaTela(pAcaoTela: string; CodCliente: Integer):Integer;
+begin
+ {  TELA  CLIENTE RECEBE A CLASSE QUE CRIA A APLICAÇÃO }
+  TClienteC := TTClienteC.Create(Application);
+  with TClienteC do
+  begin
+   {I - inserir
+    C - Consultar
+    E - Editar}
+    xCodCliente := CodCliente;
+    AcaoTela := pAcaoTela;
+    if AcaoTela = 'C' then {CONSULTAR}
+    begin
+      CarregaDados;
+      DesabilitaComponentes;
+      TClienteC.Caption:='Consultar Cliente';
+    end;
+    if AcaoTela = 'E' then {EDITAR}
+    begin
+      CarregaDados;
+      cbAtivo.Enabled := True;
+      TClienteC.Caption:='Editar Cliente';
+    end;
+    if AcaoTela = 'I' then {inserir}
+    begin
+      CarregaDados;
+      cbAtivo.Checked := True;
+      cbAtivo.Enabled := False;
+      TClienteC.Caption:='Cadastro de Cliente';
+    end;
+    ShowModal;
+    if xCodCliente > 0 then
+      Result := xCodCliente;
+  end;
+  FreeAndNil(TClienteC);
+ {  tudo que cria na memproa TEM que ser liberado }
+end;
+
+procedure TTClienteC.DesabilitaComponentes;
+begin
+  edtNome.ReadOnly := True;
+  edtRg.ReadOnly := True;
+  cbAtivo.Enabled := False;
+  btnSalvar.Enabled := False;
+end;
+
+procedure TTClienteC.edCpfExit(Sender: TObject);
+begin
+  //validar cpf
+  if edCpf.Text <> '   .   .   -  ' then
+    if ValidaCPF(edCpf.Text) = False then
+    begin
+      EnviaMensagem('Cpf inválido!', 'Informação...', mtInformation, [mbOK]);
+      edCpf.Clear;
+      if edCpf.CanFocus then
+        edCpf.SetFocus;
+      Exit;
+    end;
+end;
+
+procedure TTClienteC.edtNomeExit(Sender: TObject);
+begin
+  if edtNome.Text <> '' then
+    if (Length(edtNome.Text) <= 1) then
+    begin
+      //Ação
+      EnviaMensagem('Nome Inválido, digite novamente!','',mtInformation,[mbOK]);
+      if edtNome.CanFocus then
+        edtNome.SetFocus;
+    end;
+end;
+
+procedure TTClienteC.edtNomeKeyPress(Sender: TObject; var Key: Char);
+begin
+  Key := UpCase(Key);
+  if key in [ 'ç', '/', '*' ,'á', 'à' , 'ã', 'ó', 'ò' , 'õ' , 'ô', 'â', '°', '}' , 'ª' ,'~' ,'^' ,'!' ,'@' ,'#' ,'$' ,'%' ,'¨' ,'&' , ')' , '(' ,'§' ,'ª' ,'{' ,'"',',','+','-','.','\','?',';','[',']','´','-','='] then
+    Key:=#0;
+end;
+
+procedure TTClienteC.FormCreate(Sender: TObject);
+begin
+  //abrir
+  ArquivoINI := TIniFile.Create('D:\FOCUS\Ini\ConfigPrjEstagio.ini');
+  // Leitura
+  // ArquivoINI.ReadString('Cliente', 'rg', '');
+  //ArquivoINI.ReadBool('Cliente','rg', rg);
+  if ArquivoINI.ReadBool('Cliente','rg', rg ) = True then
+  begin
+    gpRg.Visible := False;
+    //EnviaMensagem('rg sim','',mtInformation,[mbOK]);
+  end;
+  //RadioGroup.ItemIndex := ArquivoINI.ReadInteger('Informacoes', 'Opcao', 0);
+
+  {
+  with TClienteC do
+  begin
+
+    Height := 200;
+    Width := 300;
+
+  end;}
+end;
+
+procedure TTClienteC.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key of
+    VK_F5:
+    begin
+      if (btnSalvar.Enabled) and (btnSalvar.Visible) then
+        btnSalvar.Click;
+    end;
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Enabled) and (btnCancelar.Visible) then
+        btnCancelar.Click;
+    end;
+  end;
+end;
+
+end.

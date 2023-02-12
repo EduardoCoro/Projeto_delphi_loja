@@ -1,0 +1,100 @@
+unit Relatorio_Produto;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, RLReport, pngimage, DB, ADODB;
+
+type
+  TRlProduto = class(TForm)
+    rlpProduto: TRLReport;
+    RLBand5: TRLBand;
+    RLImage1: TRLImage;
+    RLLabel5: TRLLabel;
+    RLLabel6: TRLLabel;
+    RLLabel7: TRLLabel;
+    RLLabel8: TRLLabel;
+    RLBand1: TRLBand;
+    RLLabel1: TRLLabel;
+    RLBand2: TRLBand;
+    QProduto: TADOQuery;
+    dtsProduto: TDataSource;
+    RLLabel2: TRLLabel;
+    RLLabel3: TRLLabel;
+    RLLabel4: TRLLabel;
+    RLLabel9: TRLLabel;
+    RLBand3: TRLBand;
+    RLDBText1: TRLDBText;
+    RLDBText2: TRLDBText;
+    RLDBText3: TRLDBText;
+    RLLabel10: TRLLabel;
+    RLBDataValidade: TRLDBText;
+    RLBand4: TRLBand;
+    RLLabel11: TRLLabel;
+    RLDBResult1: TRLDBResult;
+    RLLabel12: TRLLabel;
+    rlbdSemValidade: TRLDBText;
+    RLBand6: TRLBand;
+    RLLabel13: TRLLabel;
+    resultValidade: TRLDBResult;
+    procedure RLBand3AfterPrint(Sender: TObject);
+    procedure RLBDataValidadeAfterPrint(Sender: TObject);
+    procedure resultValidadeAfterPrint(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    procedure chamatela();
+  end;
+
+var
+  RlProduto: TRlProduto;
+
+implementation
+
+uses
+ DMPrincipal;
+
+{$R *.dfm}
+
+procedure TRlProduto.RLBand3AfterPrint(Sender: TObject);
+begin
+//  if RLBDataValidade.Text = '' then
+//     RLBDataValidade.DataField := 'SEM_VALIDADE';
+
+end;
+
+procedure TRlProduto.RLBDataValidadeAfterPrint(Sender: TObject);
+begin
+   if (RLBDataValidade.Text = '') then
+   begin
+     if (RLBDataValidade.DataField = 'DATA_VALIDADE')  then
+       RLBDataValidade.DataField := 'SEM_VALIDADE'
+   else
+     RLBDataValidade.DataField := 'DATA_VALIDADE';
+   end;
+end;
+
+procedure TRlProduto.resultValidadeAfterPrint(Sender: TObject);
+begin
+  if rlbdSemValidade.Text = 'True' then
+    resultValidade.Text :=  IntToStr( StrToInt(resultValidade.Text) + 1 );
+
+
+end;
+
+procedure TRlProduto.chamatela;
+begin
+  RlProduto := TRlProduto.Create(Application);
+  with RlProduto do
+  begin                    // CHMAR RELATORIO
+    rlpProduto.PreviewModal;
+  end;
+  FreeAndNil(RlProduto);
+end;
+
+
+
+
+end.

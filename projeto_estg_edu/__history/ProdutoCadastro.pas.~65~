@@ -1,0 +1,161 @@
+unit ProdutoCadastro;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, Mask;
+
+type
+  TTProdutoCadastro = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    btnSalvar: TButton;
+    btnCancelar: TButton;
+    lblTitulo: TLabel;
+    edtNome: TEdit;
+    edTPreco: TEdit;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    editDTvalidade: TMaskEdit;
+    rdFiltro: TRadioGroup;
+    ckbValidade: TCheckBox;
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnSalvarClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure ckbValidadeClick(Sender: TObject);
+  private
+    { Private declarations }
+    AcaoTela: string;
+    CanClose : Boolean;
+  public
+    { Public declarations }
+     procedure ChamaTela(pAcaoTela: string );
+  end;
+
+var
+  TProdutoCadastro: TTProdutoCadastro;
+
+implementation
+
+uses DTMPRINCIPAL, Funcoes, Funcoesdb;
+
+{$R *.dfm}
+procedure TTProdutoCadastro.btnCancelarClick(Sender: TObject);
+begin
+   CanClose := False;
+    if MessageBox(Handle,'Deseja realmente sair da aplicação?','Fechar o formulário? ',MB_ICONQUESTION+MB_YESNO)=IDYES then
+      CanClose := True;
+
+    if CanClose = True then
+        Close;
+end;
+
+procedure TTProdutoCadastro.btnSalvarClick(Sender: TObject);
+begin
+
+
+   if Empty(edtNome .Text) then
+  begin
+     //Abort;
+     EnviaMensagem('Informe o Nome do Produto!', 'Informação...', mtInformation,[mbOK] );
+
+   //  messagedlg('Informe o Nome!',mtConfirmation,[mbok],0);
+     if edtNome.CanFocus then
+         edtNome.SetFocus;
+    // Abort;
+
+  end;
+
+  if Empty(edtPreco.Text) then
+  begin
+     EnviaMensagem('Informe o Valor!', 'Informação...', mtInformation,[mbOK] );
+     if edtPreco.CanFocus then
+         edtPreco.SetFocus;
+
+  end;
+
+  if Empty(editDTvalidade.Text) then
+  begin
+     EnviaMensagem('Informa a data de validade!', 'Informação...', mtInformation,[mbOK] );
+     if editDTvalidade.CanFocus then
+         editDTvalidade.SetFocus;
+     Exit;
+  end;
+
+  //aux := edtPreco.Text;
+
+  //edtPreco.Text:= aux;
+
+
+  with DTMPRINCIPAL.TDTMPrincipal.Qgeneric do
+  begin
+     case AcaoTela[1] of
+       'I': begin
+             Close;
+             SQL.Clear;
+             SQL.Add('INSERT INTO PRODUTO(DESCRICAO,PRECO, DATA_VALIDADE, ATIVO)');
+             SQL.Add('VALUES('+ StringTextSql(edtNome.Text));
+             SQL.Add(', '+ ColocaPonto(edtPreco.Text) + '' );
+
+             // verificando se tem validae o produto
+             if ckbValidade.Checked = True then
+                SQL.Add(', NUll')
+             else
+                SQL.Add(', '+ editDTvalidade.Text);
+
+             //SQL.Add(', 1');
+             // vericando se está por ativo ou inativo
+             case rdFiltro.ItemIndex of
+               0 : SQL.Add(', 1');
+               1 : SQL.Add(', 0');
+             end;
+
+             SQL.Add(')');
+             ExecSQL;
+             EnviaMensagem('Produto '+ edtNome.Text  +' está cadastrado!', 'Atenção!', mtInformation,[mbOK] );
+       end;
+     end;
+  end;
+  Close;
+end;
+
+procedure TTProdutoCadastro.ChamaTela(pAcaoTela: string );
+begin
+  TProdutoCadastro := TTProdutoCadastro.Create(Application);
+  With TProdutoCadastro do
+  begin
+   AcaoTela := pAcaoTela;
+   ShowModal;
+  end;
+  FreeAndNil(TProdutoCadastro);
+
+end;
+
+
+procedure TTProdutoCadastro.ckbValidadeClick(Sender: TObject);
+begin
+
+   if ckbValidade.Checked = True then
+      editDTvalidade.Enabled:=False
+   else
+       editDTvalidade.Enabled:=True;
+
+
+end;
+
+procedure TTProdutoCadastro.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+ Action := caFree;
+  Self := nil;
+end;
+
+procedure TTProdutoCadastro.FormCreate(Sender: TObject);
+begin
+    rdFiltro.Buttons[0].Checked:= True;
+end;
+
+end.

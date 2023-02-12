@@ -1,0 +1,146 @@
+unit GraficoCliente;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, ExtCtrls, TeeProcs, TeEngine, Chart, DBChart, DB,
+  ADODB, Series;
+
+type
+  TTGrafCliente = class(TForm)
+    Panel1: TPanel;
+    btnCancelar: TBitBtn;
+    FiltroRelCliente: TPanel;
+    btnAntes: TBitBtn;
+    btnDepois: TBitBtn;
+    Label1: TLabel;
+    GraficoCli: TDBChart;
+    QCliente: TADOQuery;
+    Series1: TBarSeries;
+    procedure btnAntesClick(Sender: TObject);
+    procedure btnDepoisClick(Sender: TObject);
+    procedure GraficoCliPageChange(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  private
+    { Private declarations }
+    procedure Carregadados(xDataIni,xDataFim : TDateTime);
+  public
+    { Public declarations }
+    procedure Chamatela(xDataIni,xDataFim : TDateTime);
+
+  end;
+
+var
+  TGrafCliente: TTGrafCliente;
+
+implementation
+
+uses
+ DMPrincipal, Funcoes, Funcoesdb;
+
+
+{$R *.dfm}
+
+procedure TTGrafCliente.btnAntesClick(Sender: TObject);
+begin
+  if GraficoCli.Page = 1 then
+    btnAntes.Enabled := False
+  else
+  begin
+    btnDepois.Enabled := True;
+    GraficoCli.PreviousPage;
+    if GraficoCli.Page = 1 then
+      btnAntes.Enabled := False;
+  end;
+end;
+
+procedure TTGrafCliente.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTGrafCliente.btnDepoisClick(Sender: TObject);
+begin
+  if GraficoCli.Page = GraficoCli.NumPages then
+    btnDepois.Enabled := False
+  else
+  begin
+    GraficoCli.NextPage;
+    btnAntes.Enabled := True;
+     if GraficoCli.Page = GraficoCli.NumPages then
+       btnDepois.Enabled := False;
+  end;
+end;
+
+procedure TTGrafCliente.GraficoCliPageChange(Sender: TObject);
+begin
+  Label1.Caption := IntToStr(GraficoCli.Page) + '/' + IntToStr(GraficoCli.NumPages);
+end;
+
+procedure TTGrafCliente.Chamatela(xDataIni,xDataFim : TDateTime);
+begin
+  TGrafCliente := TTGrafCliente.Create(Application);
+  with TGrafCliente do
+  begin
+    Carregadados(xDataIni,xDataFim);
+    // trava botoes?
+    if (GraficoCli.Page) = (GraficoCli.NumPages) then
+    begin
+      btnAntes.Enabled := False;
+      btnDepois.Enabled := False;
+    end;
+    // tratamento de vazio
+    if QCliente.IsEmpty then
+    begin
+      EnviaMensagem('Registro não encontrado!','',mtInformation, [mbOK]);
+      exit;
+    end
+    else
+      ShowModal;
+  end;
+  FreeAndNil(TGrafCliente);
+end;
+
+procedure TTGrafCliente.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key of
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Visible) and (btnCancelar.Enabled) then
+        btnCancelar.Click;
+    end;
+  end;
+end;
+
+procedure TTGrafCliente.Carregadados(xDataIni,xDataFim : TDateTime);
+begin
+  with QCliente do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SET DATEFORMAT YMD ');
+    SQL.Add('SELECT TOP 10 A.COD_CLIENTE, C.NOME , COUNT(*) AS COMPRAS, C.ATIVO');
+    SQL.Add('FROM COMPRA A ');
+    SQL.Add('INNER JOIN CLIENTE C ON C.COD_CLIENTE = A.COD_CLIENTE ');
+    SQL.Add('WHERE ');
+    //filtro DE DATA
+    if (xDataIni <> 0) and (xDataFim <> 0) then
+    begin
+      SQL.Add(' A.DATA  '+ DataBetweenSQL(xDataIni,xDataFim));
+    end
+    else
+    begin
+         SQL.Add(' A.DATA  = '+ DataSQL(xDataIni));
+    end;
+    SQL.Add('GROUP BY  A.COD_CLIENTE, C.NOME, C.ATIVO');
+    SQL.Add('ORDER BY  COUNT(*) DESC ');
+
+    Open;
+    Label1.Caption := IntToStr(GraficoCli.Page) + '/' + IntToStr(GraficoCli.NumPages);
+  end;
+end;
+
+end.

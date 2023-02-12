@@ -1,0 +1,562 @@
+unit FiltroRelCompraModelFornecedor;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, DBCtrls, ExtCtrls, Buttons, Mask, JvExMask, JvToolEdit, DB,
+  DBClient, Grids, DBGrids, ComCtrls, rxToolEdit;
+
+type
+  TTfiltroRelCompraModelFornecedor = class(TForm)
+    Panel1: TPanel;
+    btnImprimir: TBitBtn;
+    btnCancelar: TBitBtn;
+    FiltroRelCliente: TPanel;
+    cdsCliente: TClientDataSet;
+    cdsClienteCODIGO: TStringField;
+    cdsClienteNOME: TStringField;
+    dsCliente: TDataSource;
+    cdsFornecedor: TClientDataSet;
+    StringField1: TStringField;
+    StringField2: TStringField;
+    dsFornecedor: TDataSource;
+    Panel2: TPanel;
+    PageControl1: TPageControl;
+    TabSheet1: TTabSheet;
+    GroupBox2: TGroupBox;
+    Label1: TLabel;
+    Label3: TLabel;
+    edCodCliente: TEdit;
+    edNomeCli: TEdit;
+    btnPesquisaCliente: TBitBtn;
+    btnLimpaC: TBitBtn;
+    btnAdditens: TBitBtn;
+    btnDeleteitens: TBitBtn;
+    DBGCliente: TDBGrid;
+    TabSheet2: TTabSheet;
+    GroupBox1: TGroupBox;
+    Label5: TLabel;
+    Label6: TLabel;
+    btnPesquisaFornecedor: TBitBtn;
+    btnLimpaF: TBitBtn;
+    edCodFornecedor: TEdit;
+    edFornecedor: TEdit;
+    btnAddF: TBitBtn;
+    btnDeleteF: TBitBtn;
+    DBGFORNECEDOR: TDBGrid;
+    Panel3: TPanel;
+    GroupBox3: TGroupBox;
+    Label4: TLabel;
+    Label2: TLabel;
+    rgOrdem: TRadioGroup;
+    edDataInicio: TDateEdit;
+    edDataFim: TDateEdit;
+    procedure btnCancelarClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure edCodClienteKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure FormCreate(Sender: TObject);
+    procedure edCodClienteKeyPress(Sender: TObject; var Key: Char);
+    procedure btnLimpaCClick(Sender: TObject);
+    procedure btnPesquisaClienteClick(Sender: TObject);
+    procedure btnImprimirClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnAdditensClick(Sender: TObject);
+    procedure btnDeleteitensClick(Sender: TObject);
+    procedure edCodFornecedorKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure edCodFornecedorKeyPress(Sender: TObject; var Key: Char);
+    procedure btnDeleteFClick(Sender: TObject);
+    procedure btnLimpaFClick(Sender: TObject);
+    procedure btnAddFClick(Sender: TObject);
+    procedure btnPesquisaFornecedorClick(Sender: TObject);
+    procedure edDataInicioExit(Sender: TObject);
+    procedure edDataFimExit(Sender: TObject);
+  private
+    { Private declarations }
+     VetAddCliente : TStringlist;
+     VetAddFornecedor : TStringlist;
+  public
+    { Public declarations }
+    procedure Chamatela;
+  end;
+
+var
+  TfiltroRelCompraModelFornecedor: TTfiltroRelCompraModelFornecedor;
+
+implementation
+
+uses
+ DMPrincipal, Funcoesdb, Funcoes, Cliente, RelCompraModelFornecedor, Fornecedor;
+
+{$R *.dfm}
+
+procedure TTfiltroRelCompraModelFornecedor.btnAddFClick(Sender: TObject);
+begin
+  if (edCodCliente.Text = '') or (edNomeCli.Text = '') then
+  begin
+    EnviaMensagem('Nehum cliente buscado!','Informação...', mtInformation, [mbOK]);
+    if edCodCliente.CanFocus then
+      edCodCliente.SetFocus;
+    exit;
+  end;
+
+  with cdsFornecedor do
+  begin
+    //  VERIFICA SE O CLIENTE JÁ ESTÁ ADICIONADO NA GRID
+    IF Locate('COD_FORNECEDOR', edCodFornecedor.Text, []) then
+    begin
+       EnviaMensagem('Fornecedor já listado!','Atenção!',mtInformation, [mbOK]);
+       btnLimpaF.Click;
+       exit;
+    end;
+
+    First;
+    Append;
+    FieldByName('COD_FORNECEDOR').AsInteger := StrToInt(edCodFornecedor.Text);
+    FieldByName('NOME').AsString := edFornecedor.Text;
+    Post;
+
+    btnLimpaF.Click;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.btnAdditensClick(Sender: TObject);
+begin
+  if (edCodCliente.Text = '') OR (edNomeCli.Text = '') then
+  begin
+    EnviaMensagem('Cliente não selecionado','Informação...',mtInformation,[mbok]);
+    if edCodCliente.CanFocus then
+      edCodCliente.SetFocus;
+    exit;
+  end;
+
+  with cdsCliente do
+  begin
+    //  VERIFICA SE O CLIENTE JÁ ESTÁ ADICIONADO NA GRID
+    IF Locate('COD_CLIENTE', edCodCliente.Text, []) then
+    begin
+       EnviaMensagem('Cliente já listado!','Atenção!',mtInformation, [mbOK]);
+       btnLimpaC.Click;
+       exit;
+    end;
+
+    First;
+    Append;
+    FieldByName('COD_CLIENTE').AsInteger := StrToInt(edCodCliente.Text);
+    FieldByName('NOME').AsString := edNomeCli.Text;
+    Post;
+
+    btnLimpaC.Click;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.btnDeleteFClick(Sender: TObject);
+begin
+  if not cdsFornecedor.IsEmpty then
+  begin
+    cdsFornecedor.Delete;
+    btnLimpaF.Click;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.btnDeleteitensClick(Sender: TObject);
+begin
+  if not cdsCliente.IsEmpty then
+  begin
+    cdsCliente.Delete;
+    btnLimpaC.Click;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.Chamatela;
+begin
+  TfiltroRelCompraModelFornecedor := TTfiltroRelCompraModelFornecedor.Create(Application);
+  with TfiltroRelCompraModelFornecedor do
+  begin
+    ShowModal;
+  end;
+  FreeAndNil(TfiltroRelCompraModelFornecedor);
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.edCodClienteKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_F3:
+    begin
+      if (btnPesquisaCliente .Enabled) and (btnPesquisaCliente.Visible) then
+        btnPesquisaCliente.Click;
+    end;
+    VK_F6:
+    begin
+      if (btnLimpaC.Enabled) and (btnLimpaC.Visible) then
+        btnLimpaC.Click;
+    end;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.edCodClienteKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if (key = #13) and not Empty(edCodCliente.Text) then
+  begin
+    with TDMPrincipal.QAux do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_CLIENTE ,NOME, RG, ATIVO');
+      SQL.Add('FROM CLIENTE');
+      SQL.Add('WHERE COD_CLIENTE = ' + StringTextSql(edCodCliente.Text));
+      Open;
+
+      edNomeCli.Text := FieldByName('NOME').AsString;
+
+      if not IsEmpty then
+      begin
+        {passa os valores}
+        btnPesquisaCliente.Enabled := False;
+        btnLimpaC.Enabled := True;
+      end
+      else
+      begin
+        EnviaMensagem('Nenhum registro encontrado!','', mtInformation, [mbok]);
+        btnLimpaC.Click;
+        Exit;
+      end;
+
+      if btnAdditens.CanFocus then
+        btnAdditens.SetFocus;
+    end;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.edCodFornecedorKeyDown(
+  Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_F3:
+    begin
+      if (btnPesquisaFornecedor.Enabled) and (btnPesquisaFornecedor.Visible) then
+        btnPesquisaFornecedor.Click;
+    end;
+    VK_F6:
+    begin
+      if (btnLimpaF.Enabled) and (btnLimpaF.Visible) then
+        btnLimpaF.Click;
+    end;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.edCodFornecedorKeyPress(
+  Sender: TObject; var Key: Char);
+begin
+ // COLOCAR A BUSCA POR CODIGO
+  if (key = #13) and not Empty(edCodFornecedor.Text) then
+  begin
+    with TDMPrincipal.QAux do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_FORNECEDOR ,NOME');
+      SQL.Add('FROM FORNECEDOR');
+      SQL.Add('WHERE ATIVO = 1');
+      SQL.Add(' AND COD_FORNECEDOR = ' + StringTextSql(edCodFornecedor.Text));
+      Open;
+
+      edFornecedor.Text := FieldByName('NOME').AsString;
+
+      if not IsEmpty then
+      begin
+        {passa os valores}
+        btnPesquisaFornecedor.Enabled := False;
+        btnLimpaF.Enabled := True;
+      end
+      else
+      begin
+        EnviaMensagem('Nenhum registro encontrado!','', mtInformation, [mbok]);
+        btnLimpaF.Click;
+        Exit;
+      end;
+
+      if btnAddF.CanFocus then
+        btnAddF.SetFocus;
+    end;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.edDataFimExit(Sender: TObject);
+begin
+  if (edDataFim.Date <= 0) and (edDataFim.Text <> '  /  /    ') then
+  begin
+    EnviaMensagem('Data Inválida!','Atenção...',mtInformation,[mbOK]);
+    edDataFim.Clear;
+    if edDataFim.CanFocus then
+      edDataFim.SetFocus;
+    exit;
+  end;
+   if edDataFim.Date > date() then
+  begin
+    EnviaMensagem('A Data é maior que a data atual!','Atenção...',mtInformation,[mbOK]);
+    edDataFim.Clear;
+    exit;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.edDataInicioExit(Sender: TObject);
+begin
+  if (edDataInicio.Date <= 0) and (edDataInicio.Text <> '  /  /    ') then
+  begin
+    EnviaMensagem('Data Inválida!','',mtInformation,[mbOK]);
+    edDataInicio.Clear;
+    if edDataInicio.CanFocus then
+      edDataInicio.SetFocus;
+    exit;
+  end;
+  if edDataInicio.Date > date() then
+  begin
+    EnviaMensagem('A Data é maior que a data atual!','',mtInformation,[mbOK]);
+    edDataInicio.Clear;
+    exit;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  FreeAndNil(cdsCliente);
+  FreeAndNil(VetAddCliente);
+  FreeAndNil(cdsFornecedor);
+  FreeAndNil(VetAddFornecedor);
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.FormCreate(Sender: TObject);
+begin
+  cdsCliente.CreateDataSet;
+  VetAddCliente := TStringList.Create;
+  cdsFornecedor.CreateDataSet;
+  VetAddFornecedor := TStringList.Create;
+  edDataFim.Date := date();
+  edDataInicio.Date := StrToDate('01/' + MesAno(date()));;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.FormKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  case key of
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Enabled) and (btnCancelar.Visible) then
+        btnCancelar.Click;
+    end;
+    VK_F5:
+    begin
+      if (btnImprimir.Enabled) and (btnImprimir.Visible) then
+        btnImprimir.Click;
+    end;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.btnImprimirClick(Sender: TObject);
+var CanClose : boolean;
+begin
+  CanClose := True;
+  //ValidarDataInicialFinal(edDataInicio, edDataFim);
+  //verifica se está correto os dados
+  //ValidarDataInicialFinal(edDataInicio, edDataFim);
+  if not ((edDataInicio.Date <> 0) or (edDataFim.Date <> 0) ) then
+  begin
+    if not (edDataInicio.Date <> 0) then
+    begin
+       MessageBox(Handle,'Preencha corretamente o campo da data inicial!','Informação..',MB_ICONQUESTION+MB_OK);
+       if edDataInicio.CanFocus then
+         edDataInicio.SetFocus;
+    end
+    else
+    begin
+      MessageBox(Handle,'Preencha corretamente o campo da data fim!','Informação..',MB_ICONQUESTION+MB_OK);
+      if edDataFim.CanFocus then
+        edDataFim.SetFocus;
+    end;
+    exit;
+  end
+  else
+  begin
+    //data inicio
+    if edDataInicio.Date > date() then
+    begin
+      EnviaMensagem('Data maior que a atual!','',mtInformation,[mbOK]);
+      edDataInicio.Clear;
+      if edDataInicio.CanFocus then
+        edDataInicio.SetFocus;
+      exit;
+    end;
+    if (edDataInicio.Date <= 0) and (edDataInicio.Text <> '  /  /    ') then
+    begin
+      EnviaMensagem('Data Inválida!','',mtInformation,[mbOK]);
+      edDataInicio.Clear;
+      if edDataInicio.CanFocus then
+        edDataInicio.SetFocus;
+      exit;
+    end;
+
+    //data fim
+    if edDataFim.Date > date() then
+    begin
+      EnviaMensagem('Data maior que a atual!','',mtInformation,[mbOK]);
+      edDataFim.Clear;
+      if edDataFim.CanFocus then
+        edDataFim.SetFocus;
+      exit;
+    end;
+    if (edDataFim.Date <= 0) and (edDataFim.Text <> '  /  /    ') then
+    begin
+      EnviaMensagem('Data Inválida!','',mtInformation,[mbOK]);
+      edDataFim.Clear;
+      if edDataFim.CanFocus then
+        edDataFim.SetFocus;
+      exit;
+    end;
+  end;
+
+  if CanClose = True then
+  begin
+    if not cdsCliente.IsEmpty OR not cdsFornecedor.IsEmpty then
+    begin
+      if not cdsCliente.IsEmpty then
+      begin
+        cdsCliente.First;   // iniciando index inicial ou seja a primeira linha
+        while not cdsCliente.Eof do
+        begin
+          //InputBox('','',cdsCliente.FieldByName('COD_CLIENTE').AsString);
+          if not cdsCliente.FieldByName('COD_CLIENTE').IsNull then
+          begin
+            if VetAddCliente.IndexOf(cdsCliente.FieldByName('COD_CLIENTE').AsString) = -1 then
+            begin
+              VetAddCliente.Add(cdsCliente.FieldByName('COD_CLIENTE').AsString);
+            end;
+          end;
+          cdsCliente.Next;    // avançã p/ proxima linha
+        end;
+      end
+      else
+       VetAddCliente.Clear;
+
+      if not cdsFornecedor.IsEmpty then
+      begin
+        cdsFornecedor.First;   // iniciando index inicial ou seja a primeira linha
+        while not cdsFornecedor.Eof do
+        begin
+          //InputBox('','',cdsCliente.FieldByName('COD_CLIENTE').AsString);
+          if not cdsFornecedor.FieldByName('COD_FORNECEDOR').IsNull then
+          begin
+            if VetAddFornecedor.IndexOf(cdsFornecedor.FieldByName('COD_FORNECEDOR').AsString) = -1 then
+            begin
+              VetAddFornecedor.Add(cdsFornecedor.FieldByName('COD_FORNECEDOR').AsString);
+            end;
+          end;
+          cdsFornecedor.Next;    // avançã p/ proxima linha
+        end;
+      end
+      else
+       VetAddFornecedor.Clear;
+
+      TRelCompraModelFornece.Chamatela(VetAddCliente,rgOrdem.ItemIndex, VetAddFornecedor, edDataInicio.Date, edDataFim.Date);
+    end
+    else
+    begin
+      {cds vazio}
+      VetAddCliente.Clear;
+      VetAddFornecedor.Clear;
+      TRelCompraModelFornece.Chamatela(VetAddCliente,rgOrdem.ItemIndex, VetAddFornecedor, edDataInicio.Date, edDataFim.Date);
+    end;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.btnLimpaCClick(Sender: TObject);
+begin
+  edCodCliente.Clear;
+  edNomeCli.Clear;
+  btnPesquisaCliente.Enabled := True;
+  btnLimpaC.Enabled :=False;
+  if edCodCliente.CanFocus then
+    edCodCliente.SetFocus;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.btnLimpaFClick(Sender: TObject);
+begin
+  edCodFornecedor.Clear;
+  edFornecedor.Clear;
+  btnPesquisaFornecedor.Enabled:= True;
+  btnLimpaF.Enabled:=False;
+  if edCodFornecedor.CanFocus then
+    edCodFornecedor.SetFocus;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.btnPesquisaClienteClick(
+  Sender: TObject);
+var Codigo : Integer;
+begin
+  Codigo := TCliente.ChamaTela(True);
+  if Codigo > 0 then
+  begin
+    //select nome, rg
+    with TDMPrincipal.QAux do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_CLIENTE, NOME, RG');
+      SQL.Add('FROM CLIENTE');
+      SQL.Add('WHERE COD_CLIENTE = '+ IntToStr(Codigo) );
+      Open;
+
+      edCodCliente.Text := FieldByName('COD_CLIENTE').AsString;
+      edNomeCli.Text := FieldByName('NOME').AsString;
+
+      Close;
+      btnPesquisaCliente.Enabled:= False;
+      btnLimpaC.Enabled := True;
+
+      if  btnAdditens.CanFocus then
+        btnAdditens.SetFocus;
+    end;
+  end;
+end;
+
+procedure TTfiltroRelCompraModelFornecedor.btnPesquisaFornecedorClick(
+  Sender: TObject);
+  var Codigo : Integer;
+begin
+  Codigo := TFornecedor.ChamaTela(True);
+  if Codigo > 0 then
+  begin
+    //select nome, rg
+    with TDMPrincipal.QAux do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_FORNECEDOR, NOME');
+      SQL.Add('FROM FORNECEDOR');
+      SQL.Add('WHERE COD_FORNECEDOR = '+ IntToStr(Codigo) );
+      Open;
+
+      edCodFornecedor.Text := FieldByName('COD_FORNECEDOR').AsString;
+      edFornecedor.Text := FieldByName('NOME').AsString;
+
+      Close;
+      btnPesquisaFornecedor.Enabled:= False;
+      btnLimpaF.Enabled := True;
+
+      if  btnAddF.CanFocus then
+        btnAddF.SetFocus;
+    end;
+  end;
+end;
+
+end.

@@ -1,0 +1,95 @@
+object rlpClienteF: TrlpClienteF
+  Left = 0
+  Top = 0
+  Caption = 'Filtro do Relat'#243'rio de Clientes'
+  ClientHeight = 176
+  ClientWidth = 348
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 142
+    Width = 348
+    Height = 34
+    Align = alBottom
+    TabOrder = 0
+    ExplicitTop = 168
+    ExplicitWidth = 447
+    object btnImprimir: TBitBtn
+      AlignWithMargins = True
+      Left = 188
+      Top = 4
+      Width = 75
+      Height = 26
+      Align = alRight
+      Caption = 'Imprimir'
+      TabOrder = 0
+      OnClick = btnImprimirClick
+      ExplicitLeft = 328
+      ExplicitTop = 8
+      ExplicitHeight = 25
+    end
+    object btnCancelar: TBitBtn
+      AlignWithMargins = True
+      Left = 269
+      Top = 4
+      Width = 75
+      Height = 26
+      Align = alRight
+      Caption = 'Cancelar'
+      TabOrder = 1
+      ExplicitLeft = 264
+      ExplicitTop = 6
+      ExplicitHeight = 25
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 0
+    Width = 348
+    Height = 142
+    Align = alClient
+    TabOrder = 1
+    ExplicitLeft = 112
+    ExplicitTop = 24
+    ExplicitWidth = 185
+    ExplicitHeight = 41
+    object rgOrdem: TRadioGroup
+      Left = 1
+      Top = 73
+      Width = 346
+      Height = 64
+      Align = alTop
+      Caption = 'Ordenar por...'
+      Columns = 2
+      ItemIndex = 0
+      Items.Strings = (
+        'C'#243'digo'
+        'Nome')
+      TabOrder = 0
+      ExplicitTop = 1
+    end
+    object rgFiltro: TRadioGroup
+      Left = 1
+      Top = 1
+      Width = 346
+      Height = 72
+      Align = alTop
+      Caption = 'Filtrar por...'
+      Columns = 3
+      ItemIndex = 0
+      Items.Strings = (
+        'Ativo'
+        'Inativo'
+        'Todos')
+      TabOrder = 1
+    end
+  end
+end

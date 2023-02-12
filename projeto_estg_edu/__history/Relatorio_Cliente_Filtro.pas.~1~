@@ -1,0 +1,36 @@
+unit Relatorio_Cliente_Filtro;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, ExtCtrls;
+
+type
+  TForm1 = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    btnImprimir: TBitBtn;
+    btnCancelar: TBitBtn;
+    rgOrdem: TRadioGroup;
+    rgFiltro: TRadioGroup;
+    procedure btnImprimirClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.btnImprimirClick(Sender: TObject);
+begin
+ {chamar o relatorio}{(rgfiltro.itemindex, rgordem)}
+end;
+
+end.

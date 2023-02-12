@@ -1,0 +1,70 @@
+unit CompraConsulta;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DB, ADODB, Grids, DBGrids, StdCtrls, ExtCtrls;
+
+type
+  TTCompraC = class(TForm)
+    Panel3: TPanel;
+    rbFiltro: TRadioGroup;
+    Panel2: TPanel;
+    lblDescricao: TLabel;
+    edPesquisa: TEdit;
+    btnLimpar: TButton;
+    Panel1: TPanel;
+    btnTransferir: TButton;
+    btnEditar: TButton;
+    btnExcluir: TButton;
+    btnFechar: TButton;
+    DBGrid: TDBGrid;
+    DtsCompraC: TDataSource;
+    QCompraC: TADOQuery;
+    procedure btnFecharClick(Sender: TObject);
+  private
+    { Private declarations }
+    CanClose : Boolean;
+    ColunaPesquisa : string;
+  public
+    { Public declarations }
+    procedure ChamarTela;
+  end;
+
+var
+  TCompraC: TTCompraC;
+
+implementation
+
+uses Cliente, Compra, DTMPRINCIPAL, Funcoes, Funcoesdb;
+
+{$R *.dfm}
+
+
+procedure TTCompraC.btnFecharClick(Sender: TObject);
+begin
+   begin
+    CanClose := False;
+    if MessageBox(Handle,'Deseja realmente sair da aplicação?','Fechar o formulário? ',MB_ICONQUESTION+MB_YESNO)=IDYES then
+      CanClose := True;
+
+    if CanClose = True then
+        Close;
+   end;
+end;
+
+procedure TTCompraC.ChamarTela;
+    begin
+       TCompra := TTCompra.Create(Application);
+       with TCompra do
+       begin
+        ShowModal;
+       end;
+       FreeAndNil(TCompra);
+end;
+
+
+
+
+end.

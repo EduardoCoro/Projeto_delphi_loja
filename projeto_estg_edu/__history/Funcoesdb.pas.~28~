@@ -1,0 +1,533 @@
+unit Funcoesdb;
+
+interface
+
+uses SysUtils, Variants, DB, ADODB, Forms,
+     DMPrincipal, RLReport, RLTypes,
+     Dialogs, PanelX, Funcoes, Controls, Windows, DBGrids, StdCtrls, jpeg,
+     DBChart , VarConst, DateUtils, AdvProgressBar, Classes , CheckLst,
+     StrUtils, CheckListBoxValues, ExtCtrls, QRCtrls, pngimage, Graphics,
+     DBClient;
+
+Function StringTextSql( xTexto:Variant ):String ;
+
+function BooleanTextSql(xValor: Variant): String;
+
+function TestaConexaoSistema(pConexao: TAdoConnection): Boolean;
+
+function CommitSQL( xADOQuery: TADOQuery ; pRodarExec:Boolean = False ):Boolean ;
+
+function TemReferencia(Tabela, Valor_PK, xBanco: String; TabsIgnorar: String = ''): String;
+
+Function IntegerTextSql( xValor:Variant ):String ;
+
+function ExecutaSQL(LinhaSQL: String): Boolean;
+
+function TrataSQLBancoD(StrSQL: String): String;
+
+function EmptyTable(LinhaSQL: String): Boolean;
+
+function GetCodigoIdentity( TabelaNome:String = '' ): Integer;
+
+Function DateTextSql( xData:TDateTime; xTipoHora:char = 'N' ):String ;
+
+implementation
+
+uses
+ DMPRINCIPAL;
+
+Function StringTextSql( xTexto:Variant ):String;
+Begin
+  if (xTexto = '') or (xTexto = null) then
+   Result := 'NULL'
+  else
+    Result := QuotedStr(xTexto) ;
+end ;
+
+function TrataSQLBancoD(StrSQL: String): String;
+  var AuxPosColE, AuxPosColD, AuxPP, AuxDBO, PosIni,
+      AuxPosM, AuxPosIsNull: Integer;
+  function GetIndexIniDel(xPos: Integer): Integer;
+  begin
+    while True do
+    begin
+      xPos := xPos -1;
+      if StrSQL[xPos] = ' ' then
+        Break;
+    end;
+    Result := xPos +1;
+  end;
+begin
+  case BancoD of
+    'P','O': begin
+               if AllTrim(StrSQL) <> '' then
+               begin
+                 if Copy(StrSQL, 1, 1) <> ' ' then
+                   StrSQL := ' ' + StrSQL;
+
+                 //Tirando Colchetes
+                 repeat
+                   AuxPosColE := Pos('[', StrSQL);
+                   if AuxPosColE <> 0 then
+                     Delete(StrSQL, AuxPosColE, 1);
+                   AuxPosColD := Pos(']', StrSQL);
+                   if AuxPosColD <> 0 then
+                     Delete(StrSQL, AuxPosColD, 1);
+                 until ((AuxPosColE = 0) and (AuxPosColD = 0));
+
+                 //Substituindo sinais de '+' por pipes
+                 repeat
+                   AuxPosM := Pos('+', StrSQL);
+                   if AuxPosM <> 0 then
+                   begin
+                     Delete(StrSQL, AuxPosM, 1);
+                     Insert('||', StrSQL, AuxPosM);
+                   end;
+                 until (AuxPosM = 0);
+
+                 //Substituindo isnull por coalesce
+                 repeat
+                   AuxPosIsNull := Pos('ISNULL', UpperCase(StrSQL));
+                   if AuxPosIsNull <> 0 then
+                   begin
+                     Delete(StrSQL, AuxPosIsNull, 6);
+                     Insert('Coalesce', StrSQL, AuxPosIsNull);
+                   end;
+                 until (AuxPosIsNull = 0);
+
+                 //Tirando '.dbo' e '..'
+                 repeat
+                   AuxDBO := Pos('DBO.', UpperCase(StrSQL));
+                   if AuxDBO <> 0 then
+                   begin
+                     PosIni := GetIndexIniDel(AuxDBO);
+                     Delete(StrSQL, PosIni, (AuxDBO-PosIni) +4);
+                   end;
+                   AuxPP := Pos('..', StrSQL);
+                   if AuxPP <> 0 then
+                   begin
+                     PosIni := GetIndexIniDel(AuxPP);
+                     Delete(StrSQL, PosIni, (AuxPP-PosIni) +2);
+                   end;
+                 until ((AuxDBO = 0) and (AuxPP = 0));
+
+               end;
+
+             end;
+  end;
+  Result := StrSQL ;
+end;
+
+function TestaConexaoSistema(pConexao: TAdoConnection): Boolean;
+  var ClassErro, MsgErro, EnderecoServidor, ConfigRede: String;
+  OcorreuErro, ErroConexao: Boolean;
+  wideChars   : array[0..11] of WideChar;
+  pE: SysUtils.Exception;
+  ADOQueryAux: TADOQuery;
+  ntentativa, npergunta: integer;
+  Label InicioPesquisa;
+  procedure GravaLogErro(pMensagem: String; pE: SysUtils.Exception);
+  var
+    NomeDoLog: string;
+    Arquivo: TextFile;
+  begin
+    NomeDoLog := ChangeFileExt(Application.Exename, '.log');
+    //AssignFile(Arquivo, NomeDoLog);
+
+    if FileExists(NomeDoLog) then
+      Append(arquivo) { se existir, apenas adiciona linhas }
+    else
+      ReWrite(arquivo); { cria um novo se não existir }
+    //try
+      WriteLn(arquivo, ' Data/Hora: ' + DateTimeToStr(Now) + ':' + ' Mensagem de Erro: ' + pMensagem +
+              ' Usuario: ' + IntToStr(Usuario.Codigo) + ' ' + Usuario.Nome + ' Máquina: ' + GetMaqNome +
+              ' IP: ' + GetIP + ' Sistema: ' + Sistema + ' Unidade: ' + Unidade.Cnes + '' + Unidade.Nome);
+      WriteLn(arquivo,'----------------------------------------------------------------------');
+
+      //Application.ShowException(pE);
+    //finally
+      CloseFile(arquivo)
+    //end;
+  end;
+begin
+  InicioPesquisa:
+    Try
+    try
+      OcorreuErro:= False;
+      ErroConexao := False;
+      nTentativa := 1;
+      npergunta  := 1;
+      //if pingIp(LerIniS(Path + 'Conexao.ini', ProjetoAtual.Banco, 'Servidor')) then
+      EnderecoServidor := '\\'+LerIniS(Path + 'Conexao.ini', ProjetoAtual.Banco, 'Servidor');
+      //(InternetCheckConnection( StringToWideChar(EnderecoServidor, wideChars, 12),1,0))
+      ConfigRede := ConectadoaInternet(False, False);
+      if ConfigRede = '0|Não Disponivel...' then
+      begin
+         pConexao.Connected := False;
+         OcorreuErro := True;
+         ErroConexao := True;
+         MsgErro := '[DBNETLIB][ConnectionWrite (send()).]Erro geral de rede. Verifique a documentação da rede';
+      end
+      else
+      begin
+        ADOQueryAux := TADOQuery.Create(Application);
+        ADOQueryAux.CommandTimeout := 0;
+        case BancoD of
+          'S','O': ADOQueryAux.Connection := pConexao;
+          'P': ADOQueryAux.ConnectionString := pConexao.ConnectionString;
+        end;
+        with ADOQueryAux do
+        begin
+          Close;
+          SQL.Clear;
+          SQL.Add('USE ' + ProjetoAtual.Banco);
+          ExecSQL;
+        end;
+         if pConexao.Connected then
+            Result := True;
+      end;
+    Except
+      on E: Exception  do
+      begin
+        OcorreuErro := True;
+        ClassErro := E.ClassName;
+        MsgErro := E.Message;
+        pE := E;
+      end;
+    end;
+    Finally
+      if ConfigRede <> '0|Não Disponivel...' then
+      begin
+       if ADOQueryAux.Active then
+          ADOQueryAux.Close;
+       FreeAndNil(ADOQueryAux);
+      end;
+      if (OcorreuErro) then
+      begin
+        if (MsgErro = 'Falha de conexão') or (MsgErro = 'Nenhuma transação ativa.') or
+           (MsgErro = '[DBNETLIB][ConnectionWrite (send()).]Erro geral de rede. Verifique a documentação da rede')
+           or (MsgErro = '[DBNETLIB][ConnectionWrite (WrapperWrite()).]Erro geral de rede. Verifique a documentação da rede')
+           or (MsgErro = 'Database 8 cannot be autostarted during server shutdown or startup') then
+        begin
+          ErroConexao := True;
+          pConexao.Connected := False;
+        end
+        else
+        begin
+          pConexao.RollbackTrans;
+          EnviaMensagem('Houve um erro ao Realizar a Pesquisa.' + #13 +
+                        'Classe do erro: ' + ClassErro + ';' + #13 +
+                        'Mensagem do erro: ' + MsgErro + '.', 'Aviso...', mtWarning, [mbOK]);
+          //Exit;
+        end;
+      end;
+    End;
+
+  if OcorreuErro then
+    if ErroConexao then
+    begin
+      //GravaLogErro(MsgErro, pE);
+      //TConectando.ChamaTela(pConexao);
+      if pConexao.Connected then
+      begin
+        ExecutaSQL('Set DateFormat ymd');
+        goto InicioPesquisa;
+      end
+      else
+      begin
+        if ntentativa = 5 then
+        begin
+          if EnviaMensagem('Conexão com o Banco não encontrada depois de 5 Tentativas.' + #13 +
+                        'Deseja Finalizar a aplicação? ', 'Atenção....', mtConfirmation, [mbYes, mbNo]) = mrYes then
+          begin
+            ntentativa := 0;
+            Application.Terminate;
+          end
+          else
+          begin
+            ntentativa := ntentativa;
+            npergunta := npergunta + 1;
+            //TConectando.labTentandoConectar.Caption := 'Tentanto Reconectar (Tentativa ' + IntToStr(ntentativa) + ' de 5 )';
+          end;
+        end;
+      end;
+    end
+    else
+      Exit;
+end;
+
+function CommitSQL( xADOQuery: TADOQuery ; pRodarExec:Boolean ):Boolean ;
+Begin
+  if pRodarExec then
+  Begin
+    with xADOQuery do
+    begin
+      ExecSQL ;
+    end;
+  End;
+  //
+  with xADOQuery do
+  begin
+    Sql.Clear ;
+    SQL.Add( 'COMMIT ' ) ;
+    ExecSQL ;
+    Application.ProcessMessages ;
+  end;
+End;
+
+function ExecutaSQL(LinhaSQL: String): Boolean;
+var ADOQueryAux : TADOQuery;
+begin
+  ADOQueryAux := TADOQuery.Create(Application);
+  ADOQueryAux.CommandTimeout := 0;
+  case BancoD of
+    'S', 'O': ADOQueryAux.Connection := TDMPrincipal.ADOConexao;
+    'P': ADOQueryAux.ConnectionString := TDMPrincipal.ADOConexao.ConnectionString;
+  end;
+  with ADOQueryAux do
+  begin
+    ADOQueryAux.Tag := 0;
+    Close;
+    SQL.Clear;
+    case BancoD of
+      'S': SQL.Add(TrataSQLBancoD(LinhaSQL));
+      'P','O': SQL.Add(TrataSQLBancoD(LinhaSQL));
+    end;
+    try
+      ExecSQL;
+    except
+      ADOQueryAux.Tag := 1;
+    end;
+    //if (BancoD = 'O') and (ADOQueryAux.Tag = 0) then
+    if (ADOQueryAux.Tag = 0) then
+      begin
+      commitsql(ADOQueryAux) ;
+      //Close;
+      //SQL.Clear;
+      //SQL.Add('COMMIT');
+      //ExecSQL;
+    end;
+    Result := (ADOQueryAux.Tag = 0);
+    Free;
+  end;
+end;
+
+function TemReferencia(Tabela, Valor_PK, xBanco: String; TabsIgnorar: String = ''): String;
+var ADOQueryAux : TADOQuery;
+    Reconectou, OcorreuErro: Boolean;
+    Aux, ClassErro, MsgErro: String;
+    Label InicioPesquisa;
+begin
+  ADOQueryAux := TADOQuery.Create(Application);
+  try
+  try
+    with ADOQueryAux do
+    begin
+      CommandTimeout := 0;
+      Connection := TDMPrincipal.ADOConexao;
+      ExecutaSQL('USE ' + xBanco);
+      InicioPesquisa:
+      Reconectou := False;
+      OcorreuErro := False;
+      ClassErro := '';
+      MsgErro := '';
+      try
+      try
+        Close;
+        SQL.Clear;
+        SQL.Add('SELECT COLUNA.NAME AS COLUNA, OBJECT_NAME(FK.PARENT_OBJECT_ID) AS TABELA ');
+        SQL.Add('FROM SYS.FOREIGN_KEYS AS FK INNER JOIN SYS.FOREIGN_KEY_COLUMNS AS COLUNAFK ');
+        SQL.Add('ON COLUNAFK.CONSTRAINT_OBJECT_ID = FK.OBJECT_ID ');
+        SQL.Add('INNER JOIN SYS.COLUMNS AS COLUNA ON COLUNAFK.PARENT_COLUMN_ID = COLUNA.COLUMN_ID ');
+        SQL.Add('AND COLUNAFK.PARENT_OBJECT_ID = COLUNA.OBJECT_ID ');
+        SQL.Add('WHERE OBJECT_NAME(FK.REFERENCED_OBJECT_ID) = ' + StringTextSql(Tabela));
+        if not Empty(TabsIgnorar) then
+          SQL.Add('AND OBJECT_NAME(FK.PARENT_OBJECT_ID) NOT IN ' + TabsIgnorar);
+        SQL.Add('ORDER BY TABELA ');
+        Open;
+      except
+         on E: Exception do
+        begin
+          OcorreuErro := True;
+          ClassErro := E.ClassName;
+          MsgErro := E.Message;
+        end;
+      End;
+      finally
+        if OcorreuErro then
+        begin
+          if (MsgErro = 'Falha de conexão') or
+               (MsgErro = '[DBNETLIB][ConnectionWrite (send()).]Erro geral de rede. Verifique a documentação da rede')
+               or (MsgErro = '[DBNETLIB][ConnectionWrite (WrapperWrite()).]Erro geral de rede. Verifique a documentação da rede')
+               or (MsgErro = 'Database 8 cannot be autostarted during server shutdown or startup') then
+          begin
+             if TestaConexaoSistema(TDMPrincipal.ADOConexao) then
+                Reconectou := True;
+          end
+          else
+          begin
+            EnviaMensagem('Ocorreu um erro ao Verificar as Referencias do Banco!' + #13 +
+                          'Classe do erro: ' + ClassErro + ';' + #13 +
+                          'Mensagem do erro: ' + MsgErro + '.', 'Aviso...', mtWarning, [mbOK]);
+          end;
+        end;
+      end;
+      if Reconectou then
+         goto InicioPesquisa;
+      Aux := '';
+      if not IsEmpty then
+      begin
+        First;
+        while not Eof do
+        begin
+          if not EmptyTable('SELECT ' + FieldByName('COLUNA').AsString + ' FROM ' + FieldByName('TABELA').AsString +
+                 ' WHERE ' + FieldByName('COLUNA').AsString + ' = ' + StringTextSql(Valor_PK)) then
+          begin
+            Aux := FieldByName('TABELA').AsString;
+            Break;
+          end;
+          Next;
+        end;
+      end;
+      Close;
+    end;
+  except
+    Aux := '';
+  end;
+  finally
+    FreeAndNil(ADOQueryAux);
+    ExecutaSQL('USE SAUDE');
+  end;
+  Result := Aux;
+end;
+
+function EmptyTable(LinhaSQL: String): Boolean;
+var ADOQueryAux : TADOQuery;
+  Reconectou, OcorreuErro: Boolean;
+  ClassErro, MsgErro: String;
+  Label InicioPesquisa;
+begin
+  // testa se a tabela indicada no select está vazia
+  ADOQueryAux := TADOQuery.Create(Application);
+  ADOQueryAux.CommandTimeout := 0;
+  case BancoD of
+    'S','O': ADOQueryAux.Connection := TDMPrincipal.ADOConexao;
+    'P': ADOQueryAux.ConnectionString := TDMPrincipal.ADOConexao.ConnectionString;
+  end;
+  with ADOQueryAux do
+  begin
+    InicioPesquisa:
+    Reconectou := False;
+    OcorreuErro := False;
+    ClassErro := '';
+    MsgErro := '';
+    try
+    try
+      Close;
+      SQL.Clear;
+      case BancoD of
+        'S': SQL.Add(TrataSQLBancoD(LinhaSQL));
+        'P','O': SQL.Add(TrataSQLBancoD(LinhaSQL));
+      end;
+      Open;
+    except
+       on E: Exception do
+      begin
+        OcorreuErro := True;
+        ClassErro := E.ClassName;
+        MsgErro := E.Message;
+      end;
+    End;
+    finally
+      if OcorreuErro then
+      begin
+        if (MsgErro = 'Falha de conexão') or
+             (MsgErro = '[DBNETLIB][ConnectionWrite (send()).]Erro geral de rede. Verifique a documentação da rede')
+             or (MsgErro = '[DBNETLIB][ConnectionWrite (WrapperWrite()).]Erro geral de rede. Verifique a documentação da rede')
+             or (MsgErro = 'Database 8 cannot be autostarted during server shutdown or startup') then
+        begin
+           if TestaConexaoSistema(TDMPrincipal.ADOConexao) then
+              Reconectou := True;
+        end
+        else
+        begin
+          EnviaMensagem('Ocorreu um erro ao Carregar Informações do Banco!' + #13 + 'Classe do erro: ' + ClassErro + ';' + #13 +'Mensagem do erro: ' + MsgErro + '.', 'Aviso...', mtWarning, [mbOK]);
+        end;
+      end;
+    end;
+    if Reconectou then
+       goto InicioPesquisa;
+
+    Result := IsEmpty;
+    Close;
+    FreeAndNil(ADOQueryAux);
+  end;
+end;
+
+
+
+//    /
+
+
+
+Function IntegerTextSql( xValor:Variant ):String ;
+Begin
+  if ( xValor = null ) then
+    Result := 'NULL'
+  Else Begin
+    Result := StringTextSql( IntToStr(xValor)  ) ;
+  End;
+End;
+
+function GetCodigoIdentity(TabelaNome:String ): Integer;
+var
+  ADOQueryAux : TADOQuery;
+  BancoDefault: String;
+begin
+  ADOQueryAux := TADOQuery.Create(Application);
+  ADOQueryAux.Connection := DMPRINCIPAL.TDMPrincipal.ADOConexao;
+  BancoDefault := DMPRINCIPAL.TDMPrincipal.ADOConexao.DefaultDatabase;
+  with ADOQueryAux do
+  begin
+    if (Not Empty(TabelaNome)) then
+      SQL.Add('SELECT @@Identity as CODIGO');
+    //
+    Open;
+    //
+    if (ADOQueryAux.FieldByName('CODIGO').AsVariant <> null) then
+      Result := ADOQueryAux.FieldByName('CODIGO').AsInteger
+    else
+      Result := 0;
+    //
+    Close;
+  end;
+  FreeAndNil(ADOQueryAux);
+end;
+
+function BooleanTextSql(xValor: Variant): String;
+begin
+  if xValor = Null then
+    Result := 'NULL'
+  else
+  begin
+    if xValor = True then
+      Result := StringTextSql('1')
+    Else
+      Result := StringTextSql('0');
+  end;
+end;
+
+Function DateTextSql( xData:TDateTime; xTipoHora:char ):String ;
+Begin
+  if xData = 0 then
+    Result := 'NULL'
+  else
+  if xTipoHora = 'T' then
+  begin
+    Result := DataSQLT(xData);
+  end
+  else
+    Result := DataSQL(xData);
+End;
+
+end.

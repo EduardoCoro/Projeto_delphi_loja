@@ -1,0 +1,64 @@
+unit Relatorio_Cliente;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, RLReport, DB, ADODB, pngimage;
+
+type
+  TRlCliente = class(TForm)
+    rlpCliente: TRLReport;
+    RLBand1: TRLBand;
+    RLLabel1: TRLLabel;
+    RLBand2: TRLBand;
+    RLBand3: TRLBand;
+    RLBand4: TRLBand;
+    RLLabel2: TRLLabel;
+    rbdResult: TRLDBResult;
+    QRCliente: TADOQuery;
+    DtsRelCliente: TDataSource;
+    RLDBText1: TRLDBText;
+    RLDBText2: TRLDBText;
+    RLDBText3: TRLDBText;
+    RLLabel3: TRLLabel;
+    V: TRLLabel;
+    RLLabel4: TRLLabel;
+    RLBand5: TRLBand;
+    RLImage1: TRLImage;
+    RLLabel5: TRLLabel;
+    RLLabel6: TRLLabel;
+    RLLabel7: TRLLabel;
+    RLLabel8: TRLLabel;
+    RLBand6: TRLBand;
+    RLLabel9: TRLLabel;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    procedure chamatela();
+
+  end;
+
+var
+  RlCliente: TRlCliente;
+
+implementation
+
+uses
+ DMPrincipal;
+
+{$R *.dfm}
+
+procedure TRlCliente.chamatela;
+begin
+  RlCliente := TRlCliente.Create(Application);
+  with RlCliente do
+  begin
+                       // CHMAR RELATORIO
+    rlpCliente.PreviewModal;
+  end;
+  FreeAndNil(RlCliente);
+end;
+
+end.

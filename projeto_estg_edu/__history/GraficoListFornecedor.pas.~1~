@@ -1,0 +1,24 @@
+unit GraficoListFornecedor;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs;
+
+type
+  TTGraficoListFornecedor = class(TForm)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  TGraficoListFornecedor: TTGraficoListFornecedor;
+
+implementation
+
+{$R *.dfm}
+
+end.

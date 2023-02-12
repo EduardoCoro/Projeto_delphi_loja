@@ -1,0 +1,45 @@
+unit GraficoListFornecedor;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DB, ADODB, TeEngine, Series, TeeProcs, Chart, DBChart, StdCtrls,
+  Buttons, ExtCtrls;
+
+type
+  TTGraficoListFornecedor = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    btnCancelar: TBitBtn;
+    btnAntes: TBitBtn;
+    btnDepois: TBitBtn;
+    GraficoFor: TDBChart;
+    Series1: TPieSeries;
+    QFornecedor: TADOQuery;
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnDepoisClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  TGraficoListFornecedor: TTGraficoListFornecedor;
+
+implementation
+
+{$R *.dfm}
+
+procedure TTGraficoListFornecedor.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTGraficoListFornecedor.btnDepoisClick(Sender: TObject);
+begin
+  GraficoFor.NextPage;
+end;
+
+end.

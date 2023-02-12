@@ -1,0 +1,276 @@
+object TClienteC: TTClienteC
+  Left = 0
+  Top = 0
+  Caption = 'Consulta Cliente'
+  ClientHeight = 466
+  ClientWidth = 713
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnClose = FormClose
+  OnCreate = FormCreate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 319
+    Width = 713
+    Height = 41
+    Align = alBottom
+    TabOrder = 0
+    object btnTransferir: TButton
+      AlignWithMargins = True
+      Left = 4
+      Top = 4
+      Width = 93
+      Height = 33
+      Align = alLeft
+      Caption = 'Transferir [F12]'
+      TabOrder = 0
+    end
+    object btnInserir: TBitBtn
+      AlignWithMargins = True
+      Left = 310
+      Top = 4
+      Width = 75
+      Height = 33
+      Align = alRight
+      Caption = 'Inserir [F2]'
+      TabOrder = 1
+    end
+    object btnconsulta: TBitBtn
+      AlignWithMargins = True
+      Left = 472
+      Top = 4
+      Width = 75
+      Height = 33
+      Align = alRight
+      Caption = 'Consultar [F3]'
+      TabOrder = 2
+      OnClick = btnconsultaClick
+    end
+    object btnedit: TBitBtn
+      AlignWithMargins = True
+      Left = 553
+      Top = 4
+      Width = 75
+      Height = 33
+      Align = alRight
+      Caption = 'Editar [F4]'
+      TabOrder = 3
+      OnClick = btneditClick
+    end
+    object btnRemover: TBitBtn
+      AlignWithMargins = True
+      Left = 391
+      Top = 4
+      Width = 75
+      Height = 33
+      Align = alRight
+      Caption = 'Excluir [F8]'
+      TabOrder = 4
+    end
+    object btnFechar: TBitBtn
+      AlignWithMargins = True
+      Left = 634
+      Top = 4
+      Width = 75
+      Height = 33
+      Align = alRight
+      Caption = 'Fechar [ESC]'
+      Default = True
+      TabOrder = 5
+      OnClick = btnFecharClick
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 0
+    Width = 713
+    Height = 65
+    Align = alTop
+    TabOrder = 1
+    object rbFiltro: TRadioGroup
+      AlignWithMargins = True
+      Left = 524
+      Top = 4
+      Width = 185
+      Height = 57
+      Align = alRight
+      Caption = 'Filtro'
+      Columns = 3
+      Items.Strings = (
+        'Ativo'
+        'Inativo'
+        'Todos')
+      TabOrder = 0
+    end
+  end
+  object Panel3: TPanel
+    Left = 0
+    Top = 272
+    Width = 713
+    Height = 47
+    Align = alBottom
+    TabOrder = 2
+    object lblDescricao: TLabel
+      Left = 8
+      Top = 4
+      Width = 177
+      Height = 13
+      Caption = 'Digite uma descri'#231#227'o ou * para todos'
+    end
+    object edtPesquisa: TEdit
+      Left = 8
+      Top = 20
+      Width = 353
+      Height = 21
+      TabOrder = 0
+    end
+    object btnLimpar: TBitBtn
+      AlignWithMargins = True
+      Left = 634
+      Top = 4
+      Width = 75
+      Height = 39
+      Align = alRight
+      Caption = 'Limpar [F6]'
+      TabOrder = 1
+      OnClick = btnLimparClick
+    end
+    object btnSalvar: TBitBtn
+      AlignWithMargins = True
+      Left = 553
+      Top = 4
+      Width = 75
+      Height = 39
+      Align = alRight
+      Caption = 'Salvar [F5]'
+      TabOrder = 2
+      OnClick = btnSalvarClick
+    end
+  end
+  object DBGrid1: TDBGrid
+    Left = 0
+    Top = 65
+    Width = 713
+    Height = 207
+    Align = alClient
+    DataSource = dsConsulta
+    TabOrder = 3
+    TitleFont.Charset = DEFAULT_CHARSET
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Tahoma'
+    TitleFont.Style = []
+    Columns = <
+      item
+        Expanded = False
+        FieldName = 'NOME'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -11
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 238
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'RG'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -11
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Visible = True
+      end>
+  end
+  object pledit: TPanel
+    Left = 0
+    Top = 360
+    Width = 713
+    Height = 106
+    Align = alBottom
+    TabOrder = 4
+    Visible = False
+    object Label3: TLabel
+      Left = 39
+      Top = 69
+      Width = 21
+      Height = 13
+      Caption = 'RG :'
+    end
+    object Label4: TLabel
+      Left = 39
+      Top = 35
+      Width = 34
+      Height = 13
+      Caption = 'Nome :'
+    end
+    object lblTitulo: TLabel
+      AlignWithMargins = True
+      Left = 4
+      Top = 4
+      Width = 178
+      Height = 25
+      Align = alTop
+      Alignment = taCenter
+      Caption = 'Edi'#231#227'o de Cliente'
+      Color = clBlack
+      Font.Charset = GREEK_CHARSET
+      Font.Color = clBlack
+      Font.Height = -21
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+    end
+    object edtRg: TEdit
+      Left = 72
+      Top = 61
+      Width = 137
+      Height = 21
+      TabOrder = 0
+    end
+    object edtNome: TEdit
+      Left = 72
+      Top = 34
+      Width = 257
+      Height = 21
+      TabOrder = 1
+    end
+    object rbAtivo: TRadioButton
+      Left = 233
+      Top = 61
+      Width = 96
+      Height = 31
+      Align = alCustom
+      Caption = 'Ativo'
+      Ctl3D = True
+      ParentCtl3D = False
+      TabOrder = 2
+    end
+  end
+  object QConsultaC: TADOQuery
+    Connection = TDTMPrincipal.Conexao
+    CursorType = ctStatic
+    Parameters = <>
+    SQL.Strings = (
+      'SELECT NOME, RG'
+      ''
+      ' FROM CLIENTE')
+    Left = 216
+    Top = 168
+  end
+  object dsConsulta: TDataSource
+    DataSet = QConsultaC
+    Left = 384
+    Top = 152
+  end
+end

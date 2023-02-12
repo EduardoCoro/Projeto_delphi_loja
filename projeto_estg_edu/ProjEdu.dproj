@@ -1,0 +1,264 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{15D02EFC-A815-4938-B968-4298D399643C}</ProjectGuid>
+			<ProjectVersion>12.0</ProjectVersion>
+			<MainSource>ProjEdu.dpr</MainSource>
+			<Config Condition="'$(Config)'==''">Debug</Config>
+			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_1)'!=''">
+			<Cfg_1>true</Cfg_1>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
+			<Cfg_2>true</Cfg_2>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_DependencyCheckOutputName>ProjEdu.exe</DCC_DependencyCheckOutputName>
+			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
+			<DCC_ImageBase>00400000</DCC_ImageBase>
+			<DCC_Platform>x86</DCC_Platform>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+			<DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+			<DCC_DebugInformation>false</DCC_DebugInformation>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_2)'!=''">
+			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+		</PropertyGroup>
+		<ItemGroup>
+			<DelphiCompile Include="ProjEdu.dpr">
+				<MainSource>MainSource</MainSource>
+			</DelphiCompile>
+			<DCCReference Include="MenuPrincipal.pas">
+				<Form>TMenuPrincipal</Form>
+			</DCCReference>
+			<DCCReference Include="Cliente.pas">
+				<Form>TCliente</Form>
+			</DCCReference>
+			<DCCReference Include="Produto.pas">
+				<Form>TProduto</Form>
+			</DCCReference>
+			<DCCReference Include="Compra.pas">
+				<Form>TCompra</Form>
+			</DCCReference>
+			<DCCReference Include="Funcoes.pas"/>
+			<DCCReference Include="Funcoesdb.pas"/>
+			<DCCReference Include="ClienteC.pas">
+				<Form>TClienteC</Form>
+			</DCCReference>
+			<DCCReference Include="CompraC.pas">
+				<Form>TCompraC</Form>
+			</DCCReference>
+			<DCCReference Include="DMPrincipal.pas">
+				<Form>TDMPrincipal</Form>
+				<DesignClass>TDataModule</DesignClass>
+			</DCCReference>
+			<DCCReference Include="Login.pas">
+				<Form>Tlogin</Form>
+			</DCCReference>
+			<DCCReference Include="ProdutoC.pas">
+				<Form>TProdutoC</Form>
+			</DCCReference>
+			<DCCReference Include="RelProduto.pas">
+				<Form>TRelProduto</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelCliente.pas">
+				<Form>TFiltroRelCliente</Form>
+			</DCCReference>
+			<DCCReference Include="RelCliente.pas">
+				<Form>TRelCliente</Form>
+			</DCCReference>
+			<DCCReference Include="Fornecedor.pas">
+				<Form>TFornecedor</Form>
+			</DCCReference>
+			<DCCReference Include="FornecedorC.pas">
+				<Form>TFornecedorC</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelProduto.pas">
+				<Form>TFiltroRelProduto</Form>
+			</DCCReference>
+			<DCCReference Include="ProdutoEstoque.pas">
+				<Form>TEstoque</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelCompra.pas">
+				<Form>TFiltroRelCompraCli</Form>
+			</DCCReference>
+			<DCCReference Include="RelCompra.pas">
+				<Form>TRelCompra</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelFornecedor.pas">
+				<Form>TFiltroRelFornecedor</Form>
+			</DCCReference>
+			<DCCReference Include="RelFornecedor.pas">
+				<Form>TRelFornecedor</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelEstoque.pas">
+				<Form>TFiltroRelEstoquePro</Form>
+			</DCCReference>
+			<DCCReference Include="RelEstoque.pas">
+				<Form>TRelEstoque</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelItensVendas.pas">
+				<Form>TFiltroRelItensVendas</Form>
+			</DCCReference>
+			<DCCReference Include="RelItensVendas.pas">
+				<Form>TRelItensVendas</Form>
+			</DCCReference>
+			<DCCReference Include="RelClienteS.pas">
+				<Form>TRelClienteS</Form>
+			</DCCReference>
+			<DCCReference Include="RelTopCliente.pas">
+				<Form>TRelTopCliente</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelTopCliente.pas">
+				<Form>TFiltroRelTopCli</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelTopProduto.pas">
+				<Form>TFiltroRelTopProduto</Form>
+			</DCCReference>
+			<DCCReference Include="RelTopProduto.pas">
+				<Form>TRelTopProduto</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelTopFornecedor.pas">
+				<Form>TFiltroRelTopFuncionario</Form>
+			</DCCReference>
+			<DCCReference Include="RelTopFornecedor.pas">
+				<Form>TRelTopFornecedor</Form>
+			</DCCReference>
+			<DCCReference Include="RelFornecedorProduto.pas">
+				<Form>TRelFornecedorProd</Form>
+			</DCCReference>
+			<DCCReference Include="RelProdutoS.pas">
+				<Form>TRelProdutoS</Form>
+			</DCCReference>
+			<DCCReference Include="RelFornecedorS.pas">
+				<Form>TRelFornecedorS</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelCompraModel.pas">
+				<Form>TFiltroRelCompModel</Form>
+			</DCCReference>
+			<DCCReference Include="RelCompraModel.pas">
+				<Form>TRelCompraModel</Form>
+			</DCCReference>
+			<DCCReference Include="RelCompraModelFornecedor.pas">
+				<Form>TRelCompraModelFornece</Form>
+			</DCCReference>
+			<DCCReference Include="FiltroRelCompraModelFornecedor.pas">
+				<Form>TfiltroRelCompraModelFornecedor</Form>
+			</DCCReference>
+			<DCCReference Include="RelCompraS.pas">
+				<Form>TRelCompraS</Form>
+			</DCCReference>
+			<DCCReference Include="GraficoCliente.pas">
+				<Form>TGrafCliente</Form>
+			</DCCReference>
+			<DCCReference Include="GraficoTopCliente.pas">
+				<Form>TGraficoTopCliente</Form>
+			</DCCReference>
+			<DCCReference Include="GraficoTopFornecedor.pas">
+				<Form>TGraficoFornecedor</Form>
+			</DCCReference>
+			<DCCReference Include="GraficoTopProdutos.pas">
+				<Form>TGraficoTopProdutos</Form>
+			</DCCReference>
+			<DCCReference Include="GraficoFornecedor.pas">
+				<Form>TGraficoForneceProdutos</Form>
+			</DCCReference>
+			<DCCReference Include="GraficoListCliente.pas">
+				<Form>TGraficoListCliente</Form>
+			</DCCReference>
+			<DCCReference Include="GraficoListFornecedor.pas">
+				<Form>TGraficoListFornecedor</Form>
+			</DCCReference>
+			<DCCReference Include="GraficoListProdutos.pas">
+				<Form>TGraficoListProdutos</Form>
+			</DCCReference>
+			<DCCReference Include="GraficoEstoque.pas">
+				<Form>TGraficoEstoque</Form>
+			</DCCReference>
+			<DCCReference Include="RelEstoqueS.pas">
+				<Form>TRelEstoqueS</Form>
+			</DCCReference>
+			<DCCReference Include="GraficoCompra.pas">
+				<Form>TGraficoCompra</Form>
+			</DCCReference>
+			<DCCReference Include="RelFornecedorProdutoS.pas">
+				<Form>TRelFornecedorProdutoS</Form>
+			</DCCReference>
+			<DCCReference Include="Configuracoes.pas">
+				<Form>TConfig</Form>
+			</DCCReference>
+			<BuildConfiguration Include="Base">
+				<Key>Base</Key>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Release">
+				<Key>Cfg_1</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Debug">
+				<Key>Cfg_2</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+		</ItemGroup>
+		<Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
+		<ProjectExtensions>
+			<Borland.Personality>Delphi.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Delphi.Personality>
+					<Source>
+						<Source Name="MainSource">ProjEdu.dpr</Source>
+					</Source>
+					<Parameters>
+						<Parameters Name="UseLauncher">False</Parameters>
+						<Parameters Name="LoadAllSymbols">True</Parameters>
+						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
+					</Parameters>
+					<VersionInfo>
+						<VersionInfo Name="IncludeVerInfo">False</VersionInfo>
+						<VersionInfo Name="AutoIncBuild">False</VersionInfo>
+						<VersionInfo Name="MajorVer">1</VersionInfo>
+						<VersionInfo Name="MinorVer">0</VersionInfo>
+						<VersionInfo Name="Release">0</VersionInfo>
+						<VersionInfo Name="Build">0</VersionInfo>
+						<VersionInfo Name="Debug">False</VersionInfo>
+						<VersionInfo Name="PreRelease">False</VersionInfo>
+						<VersionInfo Name="Special">False</VersionInfo>
+						<VersionInfo Name="Private">False</VersionInfo>
+						<VersionInfo Name="DLL">False</VersionInfo>
+						<VersionInfo Name="Locale">1046</VersionInfo>
+						<VersionInfo Name="CodePage">1252</VersionInfo>
+					</VersionInfo>
+					<VersionInfoKeys>
+						<VersionInfoKeys Name="CompanyName"/>
+						<VersionInfoKeys Name="FileDescription"/>
+						<VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName"/>
+						<VersionInfoKeys Name="LegalCopyright"/>
+						<VersionInfoKeys Name="LegalTrademarks"/>
+						<VersionInfoKeys Name="OriginalFilename"/>
+						<VersionInfoKeys Name="ProductName"/>
+						<VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="Comments"/>
+					</VersionInfoKeys>
+					<Excluded_Packages>
+						<Excluded_Packages Name="$(BDS)\bin\bcboffice2k120.bpl">CodeGear C++Builder Office 2000 Servers Package</Excluded_Packages>
+						<Excluded_Packages Name="$(BDS)\bin\bcbofficexp120.bpl">CodeGear C++Builder Office XP Servers Package</Excluded_Packages>
+						<Excluded_Packages Name="$(BDS)\bin\dcloffice2k120.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+						<Excluded_Packages Name="$(BDS)\bin\dclofficexp120.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+					</Excluded_Packages>
+				</Delphi.Personality>
+				<ModelSupport>False</ModelSupport>
+			</BorlandProject>
+			<ProjectFileVersion>12</ProjectFileVersion>
+		</ProjectExtensions>
+	</Project>

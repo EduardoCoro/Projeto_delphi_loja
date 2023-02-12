@@ -1,0 +1,92 @@
+unit GraficoTopProdutos;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, ExtCtrls, TeEngine, Series, TeeProcs, Chart,
+  DBChart, DB, ADODB;
+
+type
+  TTGraficoTopProdutos = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    btnCancelar: TBitBtn;
+    btnAntes: TBitBtn;
+    btnDepois: TBitBtn;
+    GraficoProdutos: TDBChart;
+    Series1: TBarSeries;
+    QProdutos: TADOQuery;
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnDepoisClick(Sender: TObject);
+    procedure btnAntesClick(Sender: TObject);
+    procedure GraficoProdutosPageChange(Sender: TObject);
+  private
+    { Private declarations }
+    procedure CarregaDados(xDataIni,xDataFim : TDateTime);
+  public
+    { Public declarations }
+    procedure Chamatela(xDataIni,xDataFim : TDateTime);
+  end;
+
+var
+  TGraficoTopProdutos: TTGraficoTopProdutos;
+
+implementation
+
+uses
+ Funcoes, Funcoesdb;
+
+{$R *.dfm}
+
+procedure TTGraficoTopProdutos.Chamatela(xDataIni: TDateTime; xDataFim: TDateTime);
+begin
+  TGraficoTopProdutos := TTGraficoTopProdutos.Create(Application);
+  with TGraficoTopProdutos do
+  begin
+    CarregaDados(xDataIni,xDataFim);
+
+    if QProdutos.IsEmpty then
+    begin
+      EnviaMensagem('Registro não encontrado!','Informação...', mtInformation, [mbOK]);
+      exit;
+    end;
+    ShowModal;
+  end;
+  FreeAndNil(TGraficoTopProdutos);
+end;
+
+procedure TTGraficoTopProdutos.btnAntesClick(Sender: TObject);
+begin
+  GraficoProdutos.PreviousPage;
+end;
+
+procedure TTGraficoTopProdutos.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTGraficoTopProdutos.btnDepoisClick(Sender: TObject);
+begin
+  GraficoProdutos.NextPage;
+end;
+
+procedure TTGraficoTopProdutos.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key  of
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Enabled) and (btnCancelar.Visible) then
+        btnCancelar.Click;
+    end;
+  end;
+end;
+
+procedure TTGraficoTopProdutos.GraficoProdutosPageChange(Sender: TObject);
+begin
+  Label1.Caption := IntToStr(GraficoProdutos.Page) + '/' + IntToStr(GraficoProdutos.NumPages);
+end;
+
+end.

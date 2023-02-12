@@ -1,0 +1,123 @@
+unit GraficoTopFornecedor;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DB, ADODB, TeEngine, Series, TeeProcs, Chart, DBChart, StdCtrls,
+  Buttons, ExtCtrls;
+
+type
+  TTGraficoFornecedor = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    btnCancelar: TBitBtn;
+    btnAntes: TBitBtn;
+    btnDepois: TBitBtn;
+    QFornecedor: TADOQuery;
+    GraficoFornece: TDBChart;
+    Series1: TBarSeries;
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnDepoisClick(Sender: TObject);
+    procedure btnAntesClick(Sender: TObject);
+    procedure GraficoFornecePageChange(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  private
+    { Private declarations }
+    procedure CarregaDados(xDataIni,xDataFim : TDateTime);
+  public
+    { Public declarations }
+    procedure Chamatela(xDataIni,xDataFim : TDateTime);
+  end;
+
+var
+  TGraficoFornecedor: TTGraficoFornecedor;
+
+implementation
+
+uses
+ Funcoes, Funcoesdb;
+
+{$R *.dfm}
+
+procedure TTGraficoFornecedor.Chamatela(xDataIni: TDateTime; xDataFim: TDateTime);
+begin
+  TGraficoFornecedor := TTGraficoFornecedor.Create(Application);
+  with TGraficoFornecedor do
+  begin
+    CarregaDados(xDataIni,xDataFim);
+    if QFornecedor.IsEmpty then
+    begin
+      EnviaMensagem('Registro não encontrado!','Informação...', mtInformation, [mbOK]);
+      exit;
+    end
+    else
+      ShowModal;
+  end;
+  FreeAndNil(TGraficoFornecedor);
+end;
+
+procedure TTGraficoFornecedor.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key of
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Visible) and (btnCancelar.Enabled) then
+        btnCancelar.Click;
+    end;
+  end;
+end;
+
+procedure TTGraficoFornecedor.GraficoFornecePageChange(Sender: TObject);
+begin
+  Label1.Caption := IntToStr(GraficoFornece.Page) + '/' + IntToStr(GraficoFornece.NumPages);
+end;
+
+procedure TTGraficoFornecedor.CarregaDados(xDataIni: TDateTime; xDataFim: TDateTime);
+begin
+  with QFornecedor do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SET DATEFORMAT YMD ');
+    SQL.Add('SELECT TOP 10 SUM(I.QUANTIDADE) AS VENDAS,  F.COD_FORNECEDOR ,F.NOME AS FORNECEDOR ');
+    SQL.Add('FROM ITENS_COMPRA I ');
+    SQL.Add('INNER JOIN PRODUTO P ON P.COD_PRODUTO = I.COD_PRODUTO ');
+    SQL.Add('INNER JOIN FORNECEDOR F ON F.COD_FORNECEDOR = P.COD_FORNECEDOR ');
+    SQL.Add('INNER JOIN COMPRA A ON A.COD_COMPRA = I.COD_COMPRA');
+    // TRATAMENTO POR DATA == A.DATA
+    if (xDataIni <> 0 ) or (xDataFim <> 0) then
+    begin
+      if (xDataIni <> 0 ) and (xDataFim <> 0) then
+        SQL.Add('WHERE A.DATA '+ DataBetweenSQL(xDataIni,xDataFim));
+      if not (xDataIni <> 0 ) and (xDataFim <> 0) then
+        SQL.Add('WHERE A.DATA = '+ DataSQL(xDataFim));
+      if (xDataIni <> 0 ) and not (xDataFim <> 0) then
+        SQL.Add('WHERE A.DATA = '+ DataSQL(xDataIni));
+    end;
+
+    SQL.Add('GROUP BY I.COD_PRODUTO, F.COD_FORNECEDOR ,F.NOME ');
+    SQL.Add('ORDER BY SUM(I.QUANTIDADE) DESC ');
+    Open;
+
+     Label1.Caption := IntToStr(GraficoFornece.Page) + '/' + IntToStr(GraficoFornece.NumPages);
+  end;
+end;
+
+procedure TTGraficoFornecedor.btnAntesClick(Sender: TObject);
+begin
+  GraficoFornece.PreviousPage;
+end;
+
+procedure TTGraficoFornecedor.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTGraficoFornecedor.btnDepoisClick(Sender: TObject);
+begin
+  GraficoFornece.NextPage;
+end;
+
+end.

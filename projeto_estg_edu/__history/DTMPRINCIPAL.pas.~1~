@@ -1,0 +1,23 @@
+unit DTMPRINCIPAL;
+
+interface
+
+uses
+  SysUtils, Classes;
+
+type
+  TTDTMPrincipal = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  TDTMPrincipal: TTDTMPrincipal;
+
+implementation
+
+{$R *.dfm}
+
+end.

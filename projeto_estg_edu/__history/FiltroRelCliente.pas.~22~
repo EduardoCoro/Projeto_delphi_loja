@@ -1,0 +1,100 @@
+unit FiltroRelCliente;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, Buttons;
+
+type
+  TTFiltroRelCliente = class(TForm)
+    Panel1: TPanel;
+    btnImprimir: TBitBtn;
+    btnCancelar: TBitBtn;
+    FiltroRelCliente: TPanel;
+    rgOrdem: TRadioGroup;
+    rgFiltro: TRadioGroup;
+    rgTipoRel: TRadioGroup;
+    procedure btnImprimirClick(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure rgTipoRelClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    procedure chamatela();
+  end;
+
+var
+  TFiltroRelCliente: TTFiltroRelCliente;
+
+implementation
+
+uses
+  RelCliente, RelClienteS, GraficoCliente;
+
+{$R *.dfm}
+
+
+procedure TTFiltroRelCliente.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTFiltroRelCliente.btnImprimirClick(Sender: TObject);
+begin
+  if rgTipoRel.ItemIndex = 0 then         /// analitico
+    TRelCliente.chamatela(rgFiltro.ItemIndex, rgOrdem.ItemIndex)
+  else if rgTipoRel.ItemIndex = 1 then
+    TRelClienteS.Chamatela  //  sintetico
+  else // grafico
+    TGrafCliente.Chamatela(rgFiltro.ItemIndex);
+end;
+
+procedure TTFiltroRelCliente.chamatela;
+begin
+  TFiltroRelCliente := TTFiltroRelCliente.Create(Application);
+  with TFiltroRelCliente do
+  begin
+    ShowModal;
+  end;
+  FreeAndNil(TFiltroRelCliente);
+end;
+
+procedure TTFiltroRelCliente.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key of
+    VK_F5:
+    begin
+       if (btnImprimir.Enabled) and (btnImprimir.Visible) then
+        btnImprimir.Click;
+    end;
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Enabled) and (btnCancelar.Visible) then
+        btnCancelar.Click;
+    end;
+  end;
+end;
+
+procedure TTFiltroRelCliente.rgTipoRelClick(Sender: TObject);
+begin
+  if(rgTipoRel.ItemIndex = 1) then
+  begin
+    rgOrdem.Enabled := False;
+    rgFiltro.Enabled := False;
+  end
+  else if (rgTipoRel.ItemIndex = 2) then
+  begin
+    rgOrdem.Enabled := False;
+  end
+  else
+  begin
+    rgOrdem.Enabled := True;
+    rgFiltro.Enabled := True;
+  end;
+end;
+
+end.

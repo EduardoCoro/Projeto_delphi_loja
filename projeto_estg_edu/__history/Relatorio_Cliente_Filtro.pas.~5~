@@ -1,0 +1,53 @@
+unit Relatorio_Cliente_Filtro;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, ExtCtrls;
+
+type
+  TrlpClienteF = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    btnImprimir: TBitBtn;
+    btnCancelar: TBitBtn;
+    rgOrdem: TRadioGroup;
+    rgFiltro: TRadioGroup;
+    procedure btnImprimirClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    procedure chamatela();
+
+  end;
+
+var
+  rlpClienteF: TrlpClienteF;
+
+implementation
+
+uses
+ Relatorio_Cliente;
+
+{$R *.dfm}
+
+procedure TrlpClienteF.btnImprimirClick(Sender: TObject);
+begin
+  RlCliente.chamatela(rgfiltro.itemindex, rgordem.ItemIndex);
+ {chamar o relatorio}{(rgfiltro.itemindex, rgordem)}
+end;
+
+procedure TrlpClienteF.chamatela;
+begin
+  rlpClienteF := TrlpClienteF.Create(Application);
+  with   rlpClienteF do
+  begin
+
+
+  end;
+  FreeAndNil(rlpClienteF);
+end;
+
+end.

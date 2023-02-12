@@ -1,0 +1,92 @@
+unit RelClienteS;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, RLReport, DB, ADODB, pngimage;
+
+type
+  TTRelClienteS = class(TForm)
+    rlpCliente: TRLReport;
+    RLBand1: TRLBand;
+    rlTitulo: TRLLabel;
+    RLBand2: TRLBand;
+    RLBand3: TRLBand;
+    RLBand5: TRLBand;
+    RLImage1: TRLImage;
+    RLLabel5: TRLLabel;
+    RLLabel6: TRLLabel;
+    RLLabel7: TRLLabel;
+    RLLabel8: TRLLabel;
+    RLBand6: TRLBand;
+    RLSystemInfo1: TRLSystemInfo;
+    RLSystemInfo2: TRLSystemInfo;
+    RLSystemInfo3: TRLSystemInfo;
+    RLSystemInfo4: TRLSystemInfo;
+    DsCliente: TDataSource;
+    QCliente: TADOQuery;
+    RLLabel1: TRLLabel;
+    RLBand4: TRLBand;
+    RLPanel2: TRLPanel;
+    RLDBText2: TRLDBText;
+    RLPanel1: TRLPanel;
+    RLDBResult1: TRLDBResult;
+    RLPanel3: TRLPanel;
+    RLDBText1: TRLDBText;
+  private
+    { Private declarations }
+    procedure CarregaDados;
+  public
+    { Public declarations }
+    procedure Chamatela;
+  end;
+
+var
+  TRelClienteS: TTRelClienteS;
+
+implementation
+
+uses
+ DMPrincipal, Funcoesdb, Funcoes;
+
+{$R *.dfm}
+
+procedure TTRelClienteS.Chamatela;
+begin
+  TRelClienteS := TTRelClienteS.Create(Application);
+  with TRelClienteS do
+  begin
+    CarregaDados;
+    rlpCliente.PreviewModal;
+  end;
+  FreeAndNil(TRelClienteS);
+end;
+
+procedure TTRelClienteS.CarregaDados;
+var aux : integer;
+begin
+  aux:= 0;
+  with TDMPrincipal.QAux do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT A.COD_CLIENTE, COUNT(*) AS QUANTIDADE ');
+    SQL.Add('FROM COMPRA C ');
+    SQL.Add('INNER JOIN CLIENTE A ON A.COD_CLIENTE = C.COD_CLIENTE ');
+    SQL.Add('GROUP BY A.COD_CLIENTE ');
+    SQL.Add('ORDER BY QUANTIDADE DESC ');
+    Open;
+
+    first;
+    while not Eof do
+    begin
+      aux:= aux + 1;
+      next;
+    end;
+    rlClienteCompra.Caption:= 'Realizou a Compra: '+ IntToStr(aux) +' Cliente(s) cadastrado(s)';
+
+  end;
+end;
+
+end.

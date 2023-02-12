@@ -1,0 +1,131 @@
+unit RelTopProduto;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DB, ADODB, RLReport, pngimage;
+
+type
+  TTRelTopProduto = class(TForm)
+    rlpProduto: TRLReport;
+    RLBand5: TRLBand;
+    RLImage1: TRLImage;
+    RLLabel5: TRLLabel;
+    RLLabel6: TRLLabel;
+    RLLabel7: TRLLabel;
+    RLLabel8: TRLLabel;
+    RLBand2: TRLBand;
+    RLPanel1: TRLPanel;
+    RLLabel2: TRLLabel;
+    RLPanel2: TRLPanel;
+    RLLabel3: TRLLabel;
+    RLPanel3: TRLPanel;
+    RLLabel4: TRLLabel;
+    RLPanel4: TRLPanel;
+    RLLabel9: TRLLabel;
+    RLPanel13: TRLPanel;
+    RLLabel10: TRLLabel;
+    RLBand3: TRLBand;
+    RLPanel6: TRLPanel;
+    RLDBText1: TRLDBText;
+    RLPanel7: TRLPanel;
+    RLDBText2: TRLDBText;
+    RLPanel8: TRLPanel;
+    rlPreco: TRLDBText;
+    RLPanel9: TRLPanel;
+    RLBDataValidade: TRLDBText;
+    RLPanel14: TRLPanel;
+    RLDBText4: TRLDBText;
+    RLBand7: TRLBand;
+    RLPanel15: TRLPanel;
+    rbdResult: TRLDBResult;
+    RLBand8: TRLBand;
+    RLSystemInfo1: TRLSystemInfo;
+    RLSystemInfo2: TRLSystemInfo;
+    RLSystemInfo3: TRLSystemInfo;
+    RLSystemInfo4: TRLSystemInfo;
+    dtsProduto: TDataSource;
+    QProduto: TADOQuery;
+    RLPanel5: TRLPanel;
+    RLLabel11: TRLLabel;
+    RLPanel10: TRLPanel;
+    RLDBResult1: TRLDBResult;
+    RLBand1: TRLBand;
+    rltitulo: TRLLabel;
+    lbltitulo: TRLLabel;
+    procedure QProdutoPRECOGetText(Sender: TField; var Text: string;
+      DisplayText: Boolean);
+  private
+    { Private declarations }
+    procedure Carregadados(xDataIni, xDataFim : TDateTime);
+  public
+    { Public declarations }
+    procedure Chamatela(xDataIni, xDataFim : TDateTime);
+  end;
+
+var
+  TRelTopProduto: TTRelTopProduto;
+
+implementation
+
+uses
+ Funcoes, Funcoesdb;
+
+{$R *.dfm}
+
+procedure TTRelTopProduto.Chamatela(xDataIni: TDateTime; xDataFim: TDateTime);
+begin
+  TRelTopProduto := TTRelTopProduto.Create(Application);
+  with TRelTopProduto do
+  begin
+    //informando a data ini e fim
+    lbltitulo.Caption := 'Por data: ' + DateToStr(xDataIni) + ' a ' + DateToStr(xDataFim) ;
+
+    Carregadados(xDataIni,xDataFim);
+    rlpProduto.PreviewModal;
+  end;
+  FreeAndNil(TRelTopProduto);
+end;
+
+procedure TTRelTopProduto.QProdutoPRECOGetText(Sender: TField; var Text: string;
+  DisplayText: Boolean);
+begin
+  Text := FormatFloat('0.00', QProduto.FieldByName('PRECO').AsFloat);
+end;
+
+procedure TTRelTopProduto.Carregadados(xDataIni: TDateTime; xDataFim: TDateTime);
+begin
+  with QProduto do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SET DATEFORMAT ymd');
+    SQL.Add('SELECT TOP 10 SUM(I.QUANTIDADE) AS COMPRADO, I.COD_PRODUTO, P.DESCRICAO , P.PRECO,  P.ESTOQUE ');
+    SQL.Add('FROM ITENS_COMPRA I ');
+    SQL.Add('INNER JOIN PRODUTO P ON P.COD_PRODUTO = I.COD_PRODUTO ');
+    SQL.Add('INNER JOIN COMPRA A ON A.COD_COMPRA = I.COD_COMPRA');
+    { VERIFICA SE IRÁ SER COM DUAS DATAS OU SOMENTE UMA DO DIA }
+    if (xDataIni <> 0) and (xDataFim <> 0 ) then
+    begin
+      SQL.Add('WHERE A.DATA ' + DataBetweenSQL(xDataIni,xDataFim));
+    end
+    else
+    begin
+      SQL.Add('WHERE A.DATA = ' + DataSQL(xDataIni));
+    end;
+
+    SQL.Add('GROUP BY I.COD_PRODUTO, P.DESCRICAO, P.PRECO, P.ESTOQUE ');
+    SQL.Add('ORDER BY SUM(I.QUANTIDADE) DESC ');
+
+    Open;
+    FieldByName('PRECO').OnGetText := QProdutoPRECOGetText;
+    if IsEmpty then
+    begin
+      EnviaMensagem('Nenhum registro encontrado','',mtInformation,[mbOK]);
+      exit;
+    end;
+  end;
+end;
+
+end.

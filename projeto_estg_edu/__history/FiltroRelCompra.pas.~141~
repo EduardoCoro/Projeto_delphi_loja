@@ -1,0 +1,378 @@
+unit FiltroRelCompra;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, Buttons, Mask, JvExMask, JvToolEdit, rxToolEdit;
+
+type
+  TTFiltroRelCompraCli = class(TForm)
+    Panel1: TPanel;
+    btnImprimir: TBitBtn;
+    btnCancelar: TBitBtn;
+    FiltroRelCliente: TPanel;
+    rdOrdemgraf: TRadioGroup;
+    groupCliente: TGroupBox;
+    Label1: TLabel;
+    Label3: TLabel;
+    edCodCliente: TEdit;
+    edNomeCli: TEdit;
+    btnPesquisaCliente: TBitBtn;
+    btnLimpaC: TBitBtn;
+    groupData: TGroupBox;
+    Label4: TLabel;
+    Label2: TLabel;
+    rgTipo: TRadioGroup;
+    edDataFim: TDateEdit;
+    edDataInicio: TDateEdit;
+    rdOrdem: TRadioGroup;
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnLimpaCClick(Sender: TObject);
+    procedure btnPesquisaClienteClick(Sender: TObject);
+    procedure edDataInicioKeyPress(Sender: TObject; var Key: Char);
+    procedure btnImprimirClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormCreate(Sender: TObject);
+    procedure edCodClienteKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure edCodClienteKeyPress(Sender: TObject; var Key: Char);
+    procedure rgTipoClick(Sender: TObject);
+    procedure edDataFimExit(Sender: TObject);
+    procedure edDataInicioExit(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    procedure chamatela;
+  end;
+
+var
+  TFiltroRelCompraCli: TTFiltroRelCompraCli;
+
+implementation
+
+uses
+  Funcoes, Funcoesdb, DMPrincipal, Cliente, RelCompra, RelCompraS,
+  GraficoCliente;
+
+{$R *.dfm}
+
+procedure TTFiltroRelCompraCli.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTFiltroRelCompraCli.btnImprimirClick(Sender: TObject);
+begin
+  //ValidarDataInicialFinal(edDataInicio, edDataFim);
+  //verifica se está correto os dados
+  //ValidarDataInicialFinal(edDataInicio, edDataFim);
+  if not ((edDataInicio.Date <> 0) or (edDataFim.Date <> 0)) then
+  begin
+    if not (edDataInicio.Date <> 0) then
+    begin
+      MessageBox(Handle, 'Preencha corretamente o campo da data inicial!', 'Informação..', MB_ICONQUESTION + MB_OK);
+      if edDataInicio.CanFocus then
+        edDataInicio.SetFocus;
+    end
+    else
+    begin
+      MessageBox(Handle, 'Preencha corretamente o campo da data fim!', 'Informação..', MB_ICONQUESTION + MB_OK);
+      if edDataFim.CanFocus then
+        edDataFim.SetFocus;
+    end;
+    exit;
+  end
+  else
+  begin
+    //data inicio
+    if edDataInicio.Date > date() then
+    begin
+      EnviaMensagem('Data maior que a atual!', '', mtInformation, [mbOK]);
+      edDataInicio.Clear;
+      if edDataInicio.CanFocus then
+        edDataInicio.SetFocus;
+      exit;
+    end;
+    if (edDataInicio.Date <= 0) and (edDataInicio.Text <> '  /  /    ') then
+    begin
+      EnviaMensagem('Data Inválida!', '', mtInformation, [mbOK]);
+      edDataInicio.Clear;
+      if edDataInicio.CanFocus then
+        edDataInicio.SetFocus;
+      exit;
+    end;
+
+    //data fim
+    if edDataFim.Date > date() then
+    begin
+      EnviaMensagem('Data maior que a atual!', '', mtInformation, [mbOK]);
+      edDataFim.Clear;
+      if edDataFim.CanFocus then
+        edDataFim.SetFocus;
+      exit;
+    end;
+    if (edDataFim.Date <= 0) and (edDataFim.Text <> '  /  /    ') then
+    begin
+      EnviaMensagem('Data Inválida!', '', mtInformation, [mbOK]);
+      edDataFim.Clear;
+      if edDataFim.CanFocus then
+        edDataFim.SetFocus;
+      exit;
+    end;
+  end;
+  // chamando tipo por filtro
+  case rgTipo.ItemIndex of
+    0:
+      begin // analítico
+      //abrir formulário
+        if Empty(edCodCliente.Text) then
+        begin
+          TRelCompra.chamatela(0, rdordem.ItemIndex, edDataInicio.Date, edDataFim.Date);
+        end
+        else
+        begin
+          if Empty(edCodCliente.Text) then
+          begin
+            MessageBox(Handle, 'Filtro não selecionado!', 'Selecione o Filtro! ', MB_ICONQUESTION + MB_OK);
+            if btnPesquisaCliente.CanFocus then
+              btnPesquisaCliente.SetFocus;
+          end
+          else
+          begin
+            TRelCompra.chamatela(StrToInt(edCodCliente.Text), rdordem.ItemIndex, edDataInicio.Date, edDataFim.Date);
+          end;
+        end;
+      end;
+    1:
+      begin // Sintetico
+        TRelCompraS.Chamatela(edDataInicio.date, edDataFim.Date);
+      end;
+    2:
+      begin // grafico
+      //TGrafCliente.Chamatela(edDataInicio.Date, edDataFim.Date);
+
+      end;
+  end;
+end;
+
+procedure TTFiltroRelCompraCli.btnLimpaCClick(Sender: TObject);
+begin
+  edCodCliente.Clear;
+  edNomeCli.Clear;
+  edCodCliente.ReadOnly := False;
+  btnPesquisaCliente.Enabled := True;
+  if edCodCliente.CanFocus then
+    edCodCliente.SetFocus;
+  btnLimpaC.Enabled := False;
+end;
+
+procedure TTFiltroRelCompraCli.btnPesquisaClienteClick(Sender: TObject);
+var
+  Codigo: Integer;
+begin
+  Codigo := TCliente.ChamaTela(True);
+  if Codigo > 0 then
+  begin
+    //select nome, rg
+    with TDMPrincipal.QAux do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_CLIENTE, NOME, RG');
+      SQL.Add('FROM CLIENTE');
+      SQL.Add('WHERE COD_CLIENTE = ' + IntToStr(Codigo));
+      Open;
+
+      edCodCliente.Text := FieldByName('COD_CLIENTE').AsString;
+      edNomeCli.Text := FieldByName('NOME').AsString;
+
+      Close;
+      //ExecSQL;
+      btnPesquisaCliente.Enabled := False;
+      btnLimpaC.Enabled := True;
+      edCodCliente.ReadOnly := True;
+    end;
+  end;
+  if btnImprimir.CanFocus then
+    btnImprimir.SetFocus;
+end;
+
+procedure TTFiltroRelCompraCli.chamatela;
+begin
+  TFiltroRelCompraCli := TTFiltroRelCompraCli.Create(Application);
+  with TFiltroRelCompraCli do
+  begin
+    ShowModal;
+  end;
+  FreeAndNil(TFiltroRelCompraCli);
+end;
+
+procedure TTFiltroRelCompraCli.edCodClienteKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_F6:
+      begin
+        if (btnLimpaC.Enabled) and (btnLimpaC.Visible) then
+          btnLimpaC.Click;
+      end;
+    VK_F3:
+      begin
+        if (btnPesquisaCliente.Enabled) and (btnPesquisaCliente.Visible) then
+          btnPesquisaCliente.Click;
+      end;
+  end;
+end;
+
+procedure TTFiltroRelCompraCli.edCodClienteKeyPress(Sender: TObject; var Key: Char);
+begin
+  if (Key = #13) and not Empty(edCodCliente.Text) then
+  begin
+    with TDMPrincipal.QAux do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_CLIENTE, NOME');
+      SQL.Add('FROM CLIENTE');
+      SQL.Add('WHERE COD_CLIENTE = ' + StringTextSql(edCodCliente.Text));
+      Open;
+
+      edCodCliente.Text := FieldByName('COD_CLIENTE').AsString;
+      edNomeCli.Text := FieldByName('NOME').AsString;
+
+      if not IsEmpty then
+      begin
+        edCodCliente.ReadOnly := True;
+        btnPesquisaCliente.Enabled := False;
+        btnLimpaC.Enabled := True;
+      end
+      else
+      begin
+        EnviaMensagem('Nenhum registro encontrado!', '', mtInformation, [mbOK]);
+        btnLimpaC.Click;
+        Exit;
+      end;
+
+    end;
+  end;
+end;
+
+procedure TTFiltroRelCompraCli.edDataFimExit(Sender: TObject);
+begin
+  if (edDataFim.Date <= 0) and (edDataFim.Text <> '  /  /    ') then
+  begin
+    EnviaMensagem('Data Inválida!', 'Atenção...', mtInformation, [mbOK]);
+    edDataFim.Clear;
+    if edDataFim.CanFocus then
+      edDataFim.SetFocus;
+    EXIT;
+  end;
+  if edDataFim.Date > date() then
+  begin
+    EnviaMensagem('A Data maior que a atual!', 'Atenção...', mtInformation, [mbOK]);
+    edDataFim.Clear;
+    exit;
+  end;
+end;
+
+procedure TTFiltroRelCompraCli.edDataInicioExit(Sender: TObject);
+begin
+  if (edDataInicio.Date <= 0) and (edDataInicio.Text <> '  /  /    ') then
+  begin
+    EnviaMensagem('Data Inválida!', 'Atenção...', mtInformation, [mbOK]);
+    edDataInicio.Clear;
+    if edDataInicio.CanFocus then
+      edDataInicio.SetFocus;
+    exit;
+  end;
+  if edDataInicio.Date > date() then
+  begin
+    EnviaMensagem('A Data maior que a atual!', 'Atenção...', mtInformation, [mbOK]);
+    edDataInicio.Clear;
+    if edDataInicio.CanFocus then
+      edDataInicio.SetFocus;
+    exit;
+  end;
+end;
+
+procedure TTFiltroRelCompraCli.edDataInicioKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then
+    if edDataFim.CanFocus then
+      edDataFim.SetFocus;
+end;
+
+procedure TTFiltroRelCompraCli.FormCreate(Sender: TObject);
+begin
+  edDataInicio.Clear;
+  edDataFim.Clear;
+  edDataFim.Date := date();
+  edDataInicio.Date := StrToDate('01/' + MesAno(date()));
+  ;
+end;
+
+procedure TTFiltroRelCompraCli.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_ESCAPE:
+      begin
+        if (btnCancelar.Enabled) and (btnCancelar.Visible) then
+          btnCancelar.Click;
+      end;
+    VK_F5:
+      begin
+        if (btnImprimir.Enabled) and (btnImprimir.Visible) then
+          btnImprimir.Click;
+      end;
+  end;
+end;
+
+procedure TTFiltroRelCompraCli.FormShow(Sender: TObject);
+begin
+  edDataInicio.MaxDate := Now;
+  edDataFim.MaxDate := Now;
+end;
+
+procedure TTFiltroRelCompraCli.rgTipoClick(Sender: TObject);
+begin
+  case rgTipo.ItemIndex of
+    0:
+      begin
+        rdOrdem.Enabled := True;
+        rdOrdem.Enabled := True;
+        groupCliente.Enabled := True;
+        groupData.Enabled := True;
+        btnPesquisaCliente.Enabled := True;
+        edDataInicio.Enabled := True;
+        edDataFim.Enabled := True;
+        edCodCliente.Enabled := True;
+      end;
+    1:
+      begin
+        rdOrdem.Visible := False;
+        groupCliente.Visible := True;
+      //groupData.Enabled := False;
+      //btnPesquisaCliente.Visible := False;
+      //edDataInicio.Enabled := False;
+      //edDataFim.Enabled := False;
+      //edCodCliente.Enabled := False;
+      end;
+    2:
+      begin
+        rdOrdem.Visible := True;
+        groupData.Enabled := True;
+        groupCliente.Visible := False;
+        rdOrdem.Destroy;
+        rdOrdem.Items := 'Maior valor' + ' Menor valor';
+      //btnPesquisaCliente.Enabled := False;
+      //edDataInicio.Enabled := False;
+      //edDataFim.Enabled := False;
+      //edCodCliente.Enabled := False;
+      end;
+  end;
+
+end;
+
+end.
+

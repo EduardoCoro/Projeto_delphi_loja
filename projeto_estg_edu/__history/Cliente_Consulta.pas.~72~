@@ -1,0 +1,252 @@
+unit Cliente_Consulta;
+
+interface
+
+uses
+  Windows, Messages, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Grids, DBGrids, DB, ADODB, ExtCtrls, Buttons;
+
+type
+  TTClienteC = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    QConsultaC: TADOQuery;
+    dsConsulta: TDataSource;
+    DBGrid1: TDBGrid;
+    edPesquisa: TEdit;
+    rbFiltro: TRadioGroup;
+    lblDescricao: TLabel;
+    btnLimpar: TBitBtn;
+    btnTransferir: TButton;
+    btnInserir: TBitBtn;
+    btnconsulta: TBitBtn;
+    btnedit: TBitBtn;
+    btnRemover: TBitBtn;
+    btnFechar: TBitBtn;
+    btnSalvar: TBitBtn;
+    pledit: TPanel;
+    edtRg: TEdit;
+    Label3: TLabel;
+    edtNome: TEdit;
+    Label4: TLabel;
+    lblTitulo: TLabel;
+    rbAtivo: TRadioButton;
+    procedure btneditClick(Sender: TObject);
+    procedure btnconsultaClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+
+    procedure btnSalvarClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnFecharClick(Sender: TObject);
+    procedure btnLimparClick(Sender: TObject);
+    procedure DBGrid1TitleClick(Column: TColumn);
+
+  private
+    { Private declarations }
+    Acaotela: String;
+    CanClose: Boolean;
+    ColunaPesquisa : string;
+
+    procedure DesabilitaComponentes;
+    procedure HabilitaComponentes;
+
+
+  public
+    { Public declarations }
+    procedure ChamaTela(pAcaoTela: string );
+  end;
+
+var
+  TClienteC: TTClienteC;
+
+implementation
+
+uses DTMPRINCIPAL, SysUtils, Funcoes, Funcoesdb;
+
+{$R *.dfm}
+
+procedure  TTClienteC.HabilitaComponentes;
+begin
+   btnInserir.Visible := True;
+   edPesquisa.ReadOnly := False;
+   rbFiltro.Enabled := false;
+   btnRemover.Visible := True;
+   btnSalvar.Visible := True;
+   pledit.Visible:=True;
+end;
+
+procedure TTClienteC.DBGrid1TitleClick(Column: TColumn);
+function GetCondicao():string; // FUNÇÃO P/ PEGAR A SINTAXE DE ACORDO COM O QUE USUÁRIO PREENCHEU
+  var aux : string;
+  begin
+    if edPesquisa.Tag = 0 then
+    begin
+      aux := 'WHERE ';
+      edPesquisa.Tag := 1;
+    end
+    else
+      aux := 'AND ';
+    Result := aux;
+  end;
+begin
+   edPesquisa.Tag := 0;
+   if (key = #13) and not Empty(edPesquisa.Text) then   // identificação do botão ENTER
+   begin
+     with QConsultaC do
+     begin  // inserçao do comando no sql
+        Close;
+        SQL.Clear;
+        SQL.Add('SELECT COD_CLIENTE, NOME, RG, ATIVO');
+        SQL.Add('FROM CLIENTE');
+
+        // IDENTIFICAR A SELEÇÃO DE ATIVO,INATIVO
+        case rbFiltro.ItemIndex of
+          0 : SQL.Add(GetCondicao + ' ATIVO = 1');
+          1 : SQL.Add(GetCondicao + ' ATIVO = 0');
+        end;
+
+        if edPesquisa.Text <> '*' then
+        begin                                      // codigo do cliente
+          if (ColunaPesquisa = 'COD_CLIENTE') or (ColunaPesquisa = 'RG') then
+            SQL.Add(GetCondicao + ColunaPesquisa + ' = ' + StringTextSql(edPesquisa.Text))
+          else
+            SQL.Add(GetCondicao + ' NOME LIKE ' + StringTextSql('%' + edPesquisa.Text + '%'));
+
+        end;
+
+
+
+        Open;
+     end;
+   end;
+end;
+
+procedure TTClienteC.DesabilitaComponentes;
+begin
+   btnInserir.Visible := False;
+   edtPesquisa.ReadOnly := True;
+   rbFiltro.Enabled := True;
+   btnRemover.Visible := False;
+   btnSalvar.Visible := False;
+   pledit.Visible := False;
+   //edt_c.  colocar focalizado;
+end;
+
+
+
+procedure TTClienteC.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+   Action := caFree;
+   Self := nil;
+end;
+
+procedure TTClienteC.FormCreate(Sender: TObject);
+begin
+
+  with  QConsultaC do
+ begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT NOME, RG FROM CLIENTE');
+    Open;
+ end;
+end;
+
+procedure TTClienteC.btnconsultaClick(Sender: TObject);
+begin
+          DesabilitaComponentes;
+end;
+
+procedure TTClienteC.btneditClick(Sender: TObject);
+begin
+ HabilitaComponentes;
+
+
+end;
+
+procedure TTClienteC.btnFecharClick(Sender: TObject);
+begin
+    CanClose := False;
+    if MessageBox(Handle,'Deseja realmente sair da aplicação?','Fechar o formulário? ',MB_ICONQUESTION+MB_YESNO)=IDYES then
+    CanClose := True;
+
+    if CanClose = True then
+        Close;
+
+end;
+
+procedure TTClienteC.btnLimparClick(Sender: TObject);
+begin
+  edtPesquisa.Clear;
+  edtRg.Clear;
+  edtNome.Clear;
+  rbFiltro.Buttons[0].Checked:=False;
+  rbFiltro.Buttons[1].Checked:=False;
+  rbFiltro.Buttons[2].Checked:=False;
+    rbFiltro.Refresh;
+    edtPesquisa.SetFocus;
+end;
+
+procedure TTClienteC.btnSalvarClick(Sender: TObject);
+begin
+  if Empty(edtNome.Text) then
+  begin
+     EnviaMensagem('Informe o Nome!', 'Informação...', mtInformation,[mbOK] );
+   //  messagedlg('Informe o Nome!',mtConfirmation,[mbok],0);
+     if edtNome.CanFocus then
+         edtNome.SetFocus;
+     Exit;
+  end;
+
+  if Empty(edtRg.Text) then
+  begin
+     EnviaMensagem('Informe o RG!', 'Informação...', mtInformation,[mbOK] );
+     if edtRg.CanFocus then
+         edtRg.SetFocus;
+     Exit;
+  end;
+
+  with DTMPRINCIPAL.TDTMPrincipal.Qgeneric do
+  begin
+     case AcaoTela[1] of
+       'E': begin
+             Close;
+             SQL.Clear;
+             SQL.Add('INSERT INTO CLIENTE(NOME, RG, ATIVO)');
+             SQL.Add('VALUES('+ StringTextSql(edtNome.Text));
+             SQL.Add(', '+ StringTextSql(edtRg.Text));
+             SQL.Add(', 1');
+             SQL.Add(')');
+             ExecSQL;
+       end;
+     end;
+  end;
+  Close;
+
+end;
+
+
+
+
+
+procedure TTClienteC.ChamaTela(pAcaoTela: string );
+begin
+ {  TELA  CLIENTE RECEBE A CLASSE QUE CRIA A APLICAÇÃO }
+  TClienteC := TTClienteC.Create(Application);
+  with TClienteC do
+  begin
+    Acaotela := pAcaoTela;
+    if pAcaoTela = 'C' then
+       DesabilitaComponentes;
+    if pAcaoTela = 'E' then
+       HabilitaComponentes;
+
+
+    ShowModal;
+  end;
+  FreeAndNil(TClienteC);
+ {  tudo que cria na memproa TEM que ser liberado }
+end;
+
+end.

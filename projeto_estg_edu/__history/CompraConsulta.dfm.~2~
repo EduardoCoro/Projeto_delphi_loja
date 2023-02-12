@@ -1,0 +1,248 @@
+object TCompraC: TTCompraC
+  Left = 0
+  Top = 0
+  Caption = 'Consultar Compra'
+  ClientHeight = 393
+  ClientWidth = 630
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel3: TPanel
+    Left = 0
+    Top = 0
+    Width = 630
+    Height = 81
+    Align = alTop
+    TabOrder = 0
+    ExplicitLeft = -332
+    ExplicitWidth = 962
+    object rbFiltro: TRadioGroup
+      AlignWithMargins = True
+      Left = 409
+      Top = 4
+      Width = 217
+      Height = 73
+      Align = alRight
+      Caption = 'Filtro'
+      Columns = 3
+      Items.Strings = (
+        'Ativo'
+        'Inativo'
+        'Todos')
+      TabOrder = 0
+      ExplicitLeft = 741
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 311
+    Width = 630
+    Height = 41
+    Align = alBottom
+    TabOrder = 1
+    ExplicitLeft = -332
+    ExplicitTop = 352
+    ExplicitWidth = 962
+    object lblDescricao: TLabel
+      Left = 4
+      Top = -1
+      Width = 177
+      Height = 13
+      Caption = 'Digite uma descri'#231#227'o ou * para todos'
+    end
+    object edPesquisa: TEdit
+      Left = 4
+      Top = 16
+      Width = 486
+      Height = 21
+      TabOrder = 0
+    end
+    object btnLimpar: TButton
+      AlignWithMargins = True
+      Left = 531
+      Top = 4
+      Width = 95
+      Height = 33
+      Align = alRight
+      Caption = 'Limpar [F6]'
+      TabOrder = 1
+      ExplicitLeft = 863
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 352
+    Width = 630
+    Height = 41
+    Align = alBottom
+    TabOrder = 2
+    ExplicitLeft = -332
+    ExplicitWidth = 962
+    object btnTransferir: TButton
+      AlignWithMargins = True
+      Left = 4
+      Top = 4
+      Width = 93
+      Height = 33
+      Align = alLeft
+      Caption = 'Transferir [F12]'
+      TabOrder = 0
+    end
+    object btnInserir: TButton
+      AlignWithMargins = True
+      Left = 227
+      Top = 4
+      Width = 75
+      Height = 33
+      Align = alRight
+      Caption = 'Inseirir [F2]'
+      TabOrder = 1
+      ExplicitLeft = 559
+    end
+    object btnConsulta: TButton
+      AlignWithMargins = True
+      Left = 308
+      Top = 4
+      Width = 75
+      Height = 33
+      Align = alRight
+      Caption = 'Consultar [F3]'
+      TabOrder = 2
+      ExplicitLeft = 640
+    end
+    object btnEditar: TButton
+      AlignWithMargins = True
+      Left = 389
+      Top = 4
+      Width = 75
+      Height = 33
+      Align = alRight
+      Caption = 'Editar [F3]'
+      TabOrder = 3
+      ExplicitLeft = 721
+    end
+    object btnExcluir: TButton
+      AlignWithMargins = True
+      Left = 470
+      Top = 4
+      Width = 75
+      Height = 33
+      Align = alRight
+      Caption = 'Excluir [F8]'
+      TabOrder = 4
+      ExplicitLeft = 802
+    end
+    object btnFechar: TButton
+      AlignWithMargins = True
+      Left = 551
+      Top = 4
+      Width = 75
+      Height = 33
+      Align = alRight
+      Caption = 'Fechar [ESC]'
+      TabOrder = 5
+      ExplicitLeft = 883
+    end
+  end
+  object DBGrid: TDBGrid
+    Left = 0
+    Top = 81
+    Width = 630
+    Height = 230
+    Align = alClient
+    Color = cl3DLight
+    DataSource = DtsCompraC
+    FixedColor = clMenuBar
+    TabOrder = 3
+    TitleFont.Charset = DEFAULT_CHARSET
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Tahoma'
+    TitleFont.Style = []
+    Columns = <
+      item
+        Expanded = False
+        FieldName = 'COD_COMPRA'
+        Title.Caption = 'C'#211'DIGO DA COMPRA'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -11
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 124
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'COD_CLIENTE'
+        Title.Caption = 'CODIGO CLIENTE'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -11
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 104
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'CLIENTE'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -11
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 225
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'DATA'
+        Title.Caption = 'DATA DA COMPRA'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -11
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 179
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'VALOR_TOTAL'
+        Title.Caption = 'VALOR TOTAL R$'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -11
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 124
+        Visible = True
+      end>
+  end
+  object DtsCompraC: TDataSource
+    DataSet = QCompraC
+    Left = 96
+    Top = 224
+  end
+  object QCompraC: TADOQuery
+    Connection = TDTMPrincipal.Conexao
+    CursorType = ctStatic
+    Parameters = <>
+    SQL.Strings = (
+      
+        'SELECT P.COD_COMPRA, P.COD_CLIENTE , C.NOME AS CLIENTE, P.DATA A' +
+        'S DATA , P.VALOR_TOTAL'
+      'FROM COMPRA AS P'
+      'INNER JOIN CLIENTE AS C ON C.COD_CLIENTE = P.COD_CLIENTE'
+      '')
+    Left = 304
+    Top = 184
+  end
+end

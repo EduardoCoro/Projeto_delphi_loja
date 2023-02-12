@@ -1,0 +1,218 @@
+object TProdutoC: TTProdutoC
+  Left = 0
+  Top = 0
+  Caption = 'Consulta Produto'
+  ClientHeight = 380
+  ClientWidth = 550
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnClose = FormClose
+  OnCreate = FormCreate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 341
+    Width = 550
+    Height = 39
+    Align = alBottom
+    TabOrder = 0
+    object btnTransferir: TButton
+      AlignWithMargins = True
+      Left = 4
+      Top = 4
+      Width = 93
+      Height = 31
+      Align = alLeft
+      Caption = 'Transferir [F12]'
+      TabOrder = 0
+      ExplicitHeight = 33
+    end
+    object btnConsulta: TButton
+      AlignWithMargins = True
+      Left = 390
+      Top = 4
+      Width = 75
+      Height = 31
+      Align = alRight
+      Caption = 'Consultar [F3]'
+      TabOrder = 1
+      ExplicitLeft = 395
+      ExplicitTop = 6
+      ExplicitHeight = 37
+    end
+    object btnFechar: TBitBtn
+      AlignWithMargins = True
+      Left = 471
+      Top = 4
+      Width = 75
+      Height = 31
+      Align = alRight
+      Caption = 'Fechar [ESC]'
+      Default = True
+      TabOrder = 2
+      OnClick = btnFecharClick
+      ExplicitLeft = 634
+      ExplicitHeight = 33
+    end
+    object btnedit: TBitBtn
+      AlignWithMargins = True
+      Left = 309
+      Top = 4
+      Width = 75
+      Height = 31
+      Align = alRight
+      Caption = 'Editar [F4]'
+      TabOrder = 3
+      ExplicitLeft = 553
+      ExplicitHeight = 33
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 290
+    Width = 550
+    Height = 51
+    Align = alBottom
+    TabOrder = 1
+    ExplicitTop = 335
+    ExplicitWidth = 731
+    object Label1: TLabel
+      Left = 4
+      Top = -1
+      Width = 177
+      Height = 13
+      Caption = 'Digite uma descri'#231#227'o ou * para todos'
+    end
+    object btnLimpar: TButton
+      AlignWithMargins = True
+      Left = 471
+      Top = 4
+      Width = 75
+      Height = 43
+      Align = alRight
+      Caption = 'Limpar [F6]'
+      TabOrder = 0
+      OnClick = btnLimparClick
+      ExplicitLeft = 652
+      ExplicitHeight = 29
+    end
+    object editPesquisa: TEdit
+      Left = 4
+      Top = 18
+      Width = 445
+      Height = 21
+      TabOrder = 1
+    end
+  end
+  object Panel3: TPanel
+    Left = 0
+    Top = 0
+    Width = 550
+    Height = 73
+    Align = alTop
+    TabOrder = 2
+    ExplicitWidth = 731
+    object rdFiltro: TRadioGroup
+      AlignWithMargins = True
+      Left = 334
+      Top = 4
+      Width = 212
+      Height = 65
+      Align = alRight
+      Caption = 'Filtro'
+      Columns = 3
+      Items.Strings = (
+        'Ativo'
+        'Inativo'
+        'Todos')
+      TabOrder = 0
+      ExplicitLeft = 423
+      ExplicitHeight = 49
+    end
+  end
+  object DBGrid1: TDBGrid
+    Left = 0
+    Top = 73
+    Width = 550
+    Height = 217
+    Align = alClient
+    Color = cl3DLight
+    DataSource = DTSProdutoC
+    FixedColor = clGradientInactiveCaption
+    TabOrder = 3
+    TitleFont.Charset = DEFAULT_CHARSET
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Tahoma'
+    TitleFont.Style = []
+    Columns = <
+      item
+        Expanded = False
+        FieldName = 'DESCRICAO'
+        Title.Caption = 'PRODUTO'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -11
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 228
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'PRECO'
+        Title.Caption = 'VALOR R$'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -11
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 99
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'DATA_VALIDADE'
+        Title.Caption = 'VALIDADE'
+        Title.Font.Charset = DEFAULT_CHARSET
+        Title.Font.Color = clWindowText
+        Title.Font.Height = -11
+        Title.Font.Name = 'Tahoma'
+        Title.Font.Style = [fsBold]
+        Width = 82
+        Visible = True
+      end
+      item
+        Expanded = False
+        FieldName = 'ATIVO'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        Visible = True
+      end>
+  end
+  object DTSProdutoC: TDataSource
+    DataSet = QProdutoC
+    Left = 168
+    Top = 192
+  end
+  object QProdutoC: TADOQuery
+    Connection = TDTMPrincipal.Conexao
+    CursorType = ctStatic
+    Parameters = <>
+    SQL.Strings = (
+      'SELECT DESCRICAO, PRECO, DATA_VALIDADE, ATIVO'
+      'FROM PRODUTO')
+    Left = 496
+    Top = 152
+  end
+end

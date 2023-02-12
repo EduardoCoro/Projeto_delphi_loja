@@ -1,0 +1,25 @@
+unit DMPrincipal;
+
+interface
+
+uses
+  SysUtils, Classes, DB, ADODB;
+
+type
+  TTDTMPrincipal = class(TDataModule)
+    Conexao: TADOConnection;
+    Qgeneric: TADOQuery;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  TDTMPrincipal: TTDTMPrincipal;
+
+implementation
+
+{$R *.dfm}
+
+end.

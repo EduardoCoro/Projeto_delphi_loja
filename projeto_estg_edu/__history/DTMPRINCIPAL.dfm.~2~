@@ -1,0 +1,19 @@
+object TDTMPrincipal: TTDTMPrincipal
+  OldCreateOrder = False
+  Height = 265
+  Width = 378
+  object Connection: TADOConnection
+    Left = 176
+    Top = 120
+  end
+  object Command: TADOCommand
+    Parameters = <>
+    Left = 288
+    Top = 72
+  end
+  object Qgeneric: TADOQuery
+    Parameters = <>
+    Left = 56
+    Top = 64
+  end
+end

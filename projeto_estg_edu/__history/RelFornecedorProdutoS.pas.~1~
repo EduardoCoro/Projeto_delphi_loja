@@ -1,0 +1,24 @@
+unit RelFornecedorProdutoS;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs;
+
+type
+  TTRelFornecedorProdutoS = class(TForm)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  TRelFornecedorProdutoS: TTRelFornecedorProdutoS;
+
+implementation
+
+{$R *.dfm}
+
+end.

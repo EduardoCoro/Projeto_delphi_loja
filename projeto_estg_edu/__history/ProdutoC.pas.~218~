@@ -1,0 +1,441 @@
+unit ProdutoC;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, rxToolEdit, rxCurrEdit, Mask, ExtCtrls;
+
+type
+  TTProdutoC = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    cbAtivo: TCheckBox;
+    btnSalvar: TBitBtn;
+    btnCancelar: TBitBtn;
+    GroupBox1: TGroupBox;
+    Label4: TLabel;
+    Label5: TLabel;
+    btnPesquisaFornecedor: TBitBtn;
+    btnLimpaF: TBitBtn;
+    edCodFornecedor: TEdit;
+    edNomeFornecedor: TEdit;
+    GroupBox2: TGroupBox;
+    edtNome: TEdit;
+    Panel3: TPanel;
+    GroupBox3: TGroupBox;
+    edTPreco: TCurrencyEdit;
+    GroupBox4: TGroupBox;
+    editDTvalidade: TDateEdit;
+    Label3: TLabel;
+    ckbValidade: TCheckBox;
+    procedure ckbValidadeClick(Sender: TObject);
+    procedure edtNomeKeyPress(Sender: TObject; var Key: Char);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnSalvarClick(Sender: TObject);
+    procedure edTPrecoKeyPress(Sender: TObject; var Key: Char);
+    procedure btnPesquisaFornecedorClick(Sender: TObject);
+    procedure edCodFornecedorKeyPress(Sender: TObject; var Key: Char);
+    procedure btnLimpaFClick(Sender: TObject);
+    procedure edCodFornecedorKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure editDTvalidadeExit(Sender: TObject);
+    procedure edtNomeExit(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+  private
+    { Private declarations }
+    xCodProduto: Integer;
+    CanClose : Boolean;
+    AcaoTela: String;
+    procedure DesabilitaComponentes;
+    procedure CarregaDados;
+
+  public
+    { Public declarations }
+    function ChamaTela(pAcaoTela: string; CodProduto: Integer ) : integer;
+  end;
+
+var
+  TProdutoC: TTProdutoC;
+
+implementation
+
+uses DMPRINCIPAL, Funcoes, Funcoesdb, FornecedorC, Fornecedor;
+
+{$R *.dfm}
+
+function TTProdutoC.ChamaTela(pAcaoTela: string; CodProduto: Integer ): integer;
+begin
+  TProdutoC := TTProdutoC.Create(Application);
+  With TProdutoC do
+  begin
+    xCodProduto:= CodProduto;
+    AcaoTela := pAcaoTela;
+    if (AcaoTela = 'C') then {CONSULTAR}
+    begin
+      CarregaDados;
+      DesabilitaComponentes;
+      TProdutoC.Caption:='Consultar Produto';
+    end;
+    if AcaoTela = 'E' then {EDITAR}
+    begin
+      CarregaDados;
+      cbAtivo.Enabled := True;
+       edCodFornecedor.ReadOnly := True;
+      btnPesquisaFornecedor.Enabled:= False;
+      btnLimpaF.Enabled := True;
+      TProdutoC.Caption:='Editar Produto';
+      if Empty(editDTvalidade.Text) then
+        ckbValidade.Checked:=True;
+    end;
+    if AcaoTela = 'I' then {inserir}
+    begin
+      CarregaDados;
+      cbAtivo.Checked := True;
+      TProdutoC.Caption:='Cadastro de Produto';
+    end;
+    ShowModal;
+    if xCodProduto > 0 then
+      Result := xCodProduto;
+  end;
+  FreeAndNil(TProdutoC);
+end;
+
+procedure TTProdutoC.ckbValidadeClick(Sender: TObject);
+begin
+  if ckbValidade.Checked = True then
+    editDTvalidade.Enabled:=False
+  else
+    editDTvalidade.Enabled:=True;
+end;
+
+procedure TTProdutoC.DesabilitaComponentes;
+begin
+  edtNome.ReadOnly := True;
+  edTPreco.ReadOnly := True;
+  editDTvalidade.ReadOnly := True;
+  cbAtivo.Enabled := False;
+  btnSalvar.Enabled := False;
+  ckbValidade.Enabled := False;
+  btnPesquisaFornecedor.Enabled := False;
+end;
+
+procedure TTProdutoC.edCodFornecedorKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key of
+    VK_F3:
+    begin
+      if (btnPesquisaFornecedor.Enabled) and (btnPesquisaFornecedor.Visible) then
+        btnPesquisaFornecedor.Click;
+    end;
+    VK_F6:
+    begin
+      if (btnLimpaF.Enabled) and (btnLimpaF.Visible) then
+        btnLimpaF.Click;
+    end;
+  end;
+end;
+
+procedure TTProdutoC.edCodFornecedorKeyPress(Sender: TObject; var Key: Char);
+begin
+  if (key = #13) and not Empty(edCodFornecedor.Text) then
+  begin
+    with TDMPrincipal.QAux do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_FORNECEDOR ,NOME');
+      SQL.Add('FROM FORNECEDOR ');
+      SQL.Add('WHERE COD_FORNECEDOR = ' + StringTextSql(edCodFornecedor.Text));
+      Open;
+
+      edNomeFornecedor.Text := FieldByName('NOME').AsString;
+      edCodFornecedor.Text := FieldByName('COD_FORNECEDOR').AsString;
+
+      if not IsEmpty then
+      begin
+        {passa os valores}
+        edCodFornecedor.ReadOnly := True;
+        btnPesquisaFornecedor.Enabled := False;
+        btnLimpaF.Enabled := True;
+        btnPesquisaFornecedor.Enabled := False;
+      end
+      else
+      begin
+        EnviaMensagem('Nenhum registro encontrado!','', mtInformation, [mbok]);
+        btnLimpaF.Click;
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+procedure TTProdutoC.editDTvalidadeExit(Sender: TObject);
+begin
+
+  if (editDTvalidade.Date <= 0) and (editDTvalidade.Text <> '  /  /    ') then
+  begin
+    if editDTvalidade.CanFocus then
+      editDTvalidade.SetFocus;
+    EnviaMensagem('Data Inválida!','Atenção...',mtInformation,[mbOK]);
+    editDTvalidade.Clear;
+    exit;
+  end;
+
+  if (editDTvalidade.Date < date()) and (editDTvalidade.Text <> '  /  /    ') then
+  begin
+    EnviaMensagem('Data Menor que a atual!','',mtInformation,[mbOK]);
+    editDTvalidade.Clear;
+    if editDTvalidade.CanFocus then
+      editDTvalidade.SetFocus;
+    exit;
+  end;
+end;
+
+procedure TTProdutoC.edtNomeExit(Sender: TObject);
+begin
+  if not (edtNome.Text = '') then
+    if(Length(edtNome.Text) <= 3 ) then
+    begin
+      //Ação
+      EnviaMensagem('Nome de produto Inválido, digite novamente!','',mtInformation,[mbOK]);
+      if edtNome.CanFocus then
+        edtNome.SetFocus;
+    end;
+end;
+
+procedure TTProdutoC.edtNomeKeyPress(Sender: TObject; var Key: Char);
+begin
+  Key := UpCase(Key);
+  if key in [',', '+', '-', '*' ,'/' , '.','ª',  '}' , 'ª' ,'~' ,'^' ,'!' ,'@' ,'#' ,'$' ,'%' ,'¨' ,'&' , ')' , '(' ,'§' ,'ª' ,'{' ,'"',',','+','-','.','\','?',';','[',']', '´','-','=' ] then
+    key :=#0;
+end;
+
+procedure TTProdutoC.edTPrecoKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key in [ '-'] then//, '-', '/' ,'ª',  '}' , 'ª' ,'~' ,'^' ,'!' ,'@' ,'#' ,'$' ,'%' ,'¨' ,'&' , ')' , '(' ,'§' ,'ª' ,'{' ,'"','+','-','\','?',';','[',']', '´','-','=' ] then
+    key :=#0;
+end;
+
+procedure TTProdutoC.FormCreate(Sender: TObject);
+begin
+  editDTvalidade.MinDate := date();
+end;
+
+procedure TTProdutoC.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case key of
+    VK_F5:
+    begin
+      if (btnSalvar.Enabled) and (btnSalvar.Visible) then
+        btnSalvar.Click;
+    end;
+    VK_ESCAPE:
+    begin
+      if (btnCancelar.Enabled) and (btnCancelar.Visible) then
+        btnCancelar.Click;
+    end;
+  end;
+end;
+
+procedure TTProdutoC.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTProdutoC.btnLimpaFClick(Sender: TObject);
+begin
+  edCodFornecedor.Clear;
+  edNomeFornecedor.Clear;
+  btnPesquisaFornecedor.Enabled := True;
+  btnPesquisaFornecedor.Focused;
+  btnLimpaF.Enabled := False;
+  btnPesquisaFornecedor.SetFocus;
+  edCodFornecedor.ReadOnly := False;
+  if edCodFornecedor.CanFocus then
+    edCodFornecedor.SetFocus;
+end;
+
+procedure TTProdutoC.btnPesquisaFornecedorClick(Sender: TObject);
+var Codigo : Integer;
+begin
+  Codigo := TFornecedor.ChamaTela(True);
+  if Codigo > 0 then
+  begin
+    //select nome, rg
+    with TDMPrincipal.QAux do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT COD_FORNECEDOR, NOME');
+      SQL.Add('FROM FORNECEDOR');
+      SQL.Add('WHERE COD_FORNECEDOR = '+ IntToStr(Codigo) );
+      Open;
+
+      edCodFornecedor.Text := FieldByName('COD_FORNECEDOR').AsString;
+      edNomeFornecedor.Text := FieldByName('NOME').AsString;
+
+      Close;
+      //ExecSQL;
+      btnPesquisaFornecedor.Enabled := False;
+      btnLimpaF.Enabled := True;
+      edCodFornecedor.ReadOnly := True;
+
+      if  edCodFornecedor.CanFocus then
+        edCodFornecedor.SetFocus;
+    end;
+  end;
+end;
+
+procedure TTProdutoC.btnSalvarClick(Sender: TObject);
+//var mascara :String;
+//    data : TDateTime;
+begin
+  // nome produto
+  if Empty(edtNome.Text)  Or (Length(edtNome.Text) <= 3 ) then
+  begin
+     //Abort;
+     //EnviaMensagem('Informe o Nome do Produto!', 'Informação...', mtInformation,[mbOK] );
+    CanClose := False;
+    MessageBox(Handle,'Informe o Nome do Produto!','Dados do produto ',MB_ICONQUESTION+MB_OK);
+   //  messagedlg('Informe o Nome!',mtConfirmation,[mbok],0);
+    if edtNome.CanFocus then
+      edtNome.SetFocus;
+    Exit;
+  end;
+  //fornecedor
+  if Empty(edCodFornecedor.Text) then
+  begin
+    MessageBox(Handle,'Fornecedor não consultado!','Inserir Fornecedor no cadastro! ',MB_ICONQUESTION+MB_OK);
+    if edCodFornecedor.CanFocus then
+      edCodFornecedor.SetFocus;
+    exit;
+  end;
+  // preco
+  if Empty(edtPreco.Text) then
+  begin
+     //EnviaMensagem('Informe o Valor!', 'Informação...', mtInformation,[mbOK] );
+    MessageBox(Handle,'Valor do produto não inserido!','Dados do produto ',MB_ICONQUESTION+MB_OK);
+    if edtPreco.CanFocus then
+      edtPreco.SetFocus;
+    exit;
+  end;
+  //validade
+  if ((editDTvalidade.Text = '  /  /    ') or (Empty(editDTvalidade.Text))) and (ckbValidade.Checked = False) then
+  begin
+    //EnviaMensagem('Informa se terá ou não a data de validade!', 'Informação...', mtInformation,[mbOK] );
+    MessageBox(Handle,'Informa se terá ou não a data de validade!','Cadastro de Produto ',MB_ICONQUESTION+MB_OK);
+    if editDTvalidade.CanFocus then
+      editDTvalidade.SetFocus;
+    Exit;
+  end;
+
+  // EVENTO DE SQL
+  with TDMPrincipal.QAux do
+  begin
+    case AcaoTela[1] of
+      'I':  // INSERIR
+      begin
+        Close;
+        SQL.Clear;
+        SQL.Add('SET DATEFORMAT ymd ');
+        SQL.Add('INSERT INTO PRODUTO(DESCRICAO,PRECO, SEM_VALIDADE ,DATA_VALIDADE, ATIVO, COD_FORNECEDOR)');
+        SQL.Add('VALUES('+ StringTextSql(edtNome.Text));
+        SQL.Add(', '+ ColocaPonto(edtPreco.Text) + '' );
+             // verificando se tem validae o produto
+        if (ckbValidade.Checked = True)   then
+        begin
+          SQL.Add(', '+ BooleanTextSql(ckbValidade.Checked));         // verdade
+          SQL.Add(', NULL ')       // data validade
+        end
+        else
+        begin
+          //data := StrToDate(editDTvalidade.Text);
+          SQL.Add(', ' + BooleanTextSql(ckbValidade.Checked));         // falso
+          SQL.Add(', '+ DateTextSql(editDTvalidade.Date));       // data validade  CORRIRGIR
+        end;
+        //SQL.Add(', 1');
+        // vericando se está por ativo ou inativo
+        SQL.Add((', ' + BooleanTextSql(cbAtivo.Checked)));
+        SQL.Add(', ' + StringTextSql(edCodFornecedor.Text));
+        SQL.Add(')');
+        ExecSQL;
+        EnviaMensagem('Produto '+ edtNome.Text  +' está cadastrado!', 'Atenção!', mtInformation,[mbOK] );
+      end;
+      'E':  // EDITAR
+      begin
+        Close;
+        SQL.Clear;
+        SQL.Add('SET DATEFORMAT ymd ');
+        SQL.Add('UPDATE PRODUTO');
+        SQL.Add('SET DESCRICAO = '+ StringTextSql(edtNome.Text) + ', PRECO = '+ ColocaPonto(edtPreco.Text) );
+        SQL.Add(', COD_FORNECEDOR = '+ StringTextSql(edCodFornecedor.Text));
+
+        if (ckbValidade.Checked = True) Then
+        begin
+          SQL.Add(', SEM_VALIDAdE = ' + BooleanTextSql(ckbValidade.Checked) );
+          SQL.Add(', DATA_VALIDADE = NULL');
+        end
+        else
+        begin
+          SQL.Add(', SEM_VALIDAdE = '+ BooleanTextSql(ckbValidade.Checked));
+          SQL.Add(', DATA_VALIDADE = '+ DataSQL(editDTvalidade.Date));
+        end;
+
+        if cbAtivo.Checked = True  then
+          SQL.Add( ', ATIVO = 1')
+        else
+          SQL.Add(', ATIVO = 0');
+
+        SQL.Add('WHERE COD_PRODUTO = '+ IntToStr(xCodProduto) );
+        ExecSQL;
+        EnviaMensagem('Produto '+ edtNome.Text  +' foi EDITADO!', 'Atenção!', mtInformation,[mbOK] );
+      end;
+      'D':
+      begin
+        Close;
+        SQL.Clear;
+        SQL.Add('DELETE PRODUTO');
+        SQL.Add('WHERE COD_PRODUTO = '+ IntToStr(xCodProduto) );
+        ExecSQL;
+        EnviaMensagem('Produto '+ edtNome.Text  +' foi REMOVIDO!', 'Atenção!', mtInformation,[mbOK] );
+      end;
+     end;
+  end;
+  Close;
+end;
+
+procedure TTProdutoC.CarregaDados;
+//var aux : Boolean;
+begin
+  with TDMPrincipal.QAux do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, DATA_VALIDADE, COD_FORNECEDOR , ATIVO, SEM_VALIDADE');
+    SQL.Add('FROM PRODUTO');
+    SQL.Add('WHERE COD_PRODUTO = ' + IntToStr(xCodProduto));
+    Open;
+
+    edtNome.Text := FieldByName('DESCRICAO').AsString;
+    edTPreco.Text := FieldByName('PRECO').AsString;
+    editDTvalidade.Text := FieldByName('DATA_VALIDADE').AsString;
+    cbAtivo.Checked := FieldByName('ATIVO').AsBoolean;
+    ckbValidade.Checked := FieldByName('SEM_VALIDADE').AsBoolean;
+
+    edCodFornecedor.Text := FieldByName('COD_FORNECEDOR').AsString;
+    SQL.Clear;
+    SQL.Add('SELECT NOME');
+    SQL.Add('FROM FORNECEDOR');
+    SQL.Add('WHERE COD_FORNECEDOR = ' +  StringTextSql(edCodFornecedor.Text));
+    Open;
+
+    edNomeFornecedor.Text :=  FieldByName('NOME').AsString;
+    Close;
+  end;
+end;
+
+end.

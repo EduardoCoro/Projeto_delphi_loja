@@ -1,0 +1,39 @@
+unit GraficoListProdutos;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DB, ADODB, TeEngine, Series, TeeProcs, Chart, DBChart, StdCtrls,
+  Buttons, ExtCtrls;
+
+type
+  TTGraficoListProdutos = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    btnCancelar: TBitBtn;
+    btnAntes: TBitBtn;
+    btnDepois: TBitBtn;
+    GraficoCli: TDBChart;
+    Series1: TPieSeries;
+    QProduto: TADOQuery;
+    procedure btnCancelarClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  TGraficoListProdutos: TTGraficoListProdutos;
+
+implementation
+
+{$R *.dfm}
+
+procedure TTGraficoListProdutos.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+end.

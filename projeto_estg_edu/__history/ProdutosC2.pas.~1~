@@ -1,0 +1,37 @@
+unit ProdutosC2;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, rxToolEdit, rxCurrEdit, Mask, ExtCtrls;
+
+type
+  TTProdutosC2 = class(TForm)
+    Panel1: TPanel;
+    lblTitulo: TLabel;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    edtNome: TEdit;
+    editDTvalidade: TMaskEdit;
+    ckbValidade: TCheckBox;
+    edTPreco: TCurrencyEdit;
+    Panel2: TPanel;
+    cbAtivo: TCheckBox;
+    btnSalvar: TBitBtn;
+    btnCancelar: TBitBtn;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  TProdutosC2: TTProdutosC2;
+
+implementation
+
+{$R *.dfm}
+
+end.

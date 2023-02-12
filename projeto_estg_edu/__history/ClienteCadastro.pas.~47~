@@ -1,0 +1,131 @@
+unit ClienteCadastro;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls;
+
+type
+  TTClienteI = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    btnSalvar: TButton;
+    btnCancelar: TButton;
+    edtRg: TEdit;
+    edtNome: TEdit;
+    Label3: TLabel;
+    Label4: TLabel;
+    lblTitulo: TLabel;
+    cbAtivo: TCheckBox;
+    procedure btnSalvarClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnCancelarClick(Sender: TObject);
+  private
+    { Private declarations }
+    AcaoTela: String;
+    CanClose : Boolean;
+    procedure DesabilitaComponentes;
+  public
+    { Public declarations }
+    procedure ChamaTela(pAcaoTela: string );
+  end;
+
+var
+  TClienteI: TTClienteI;
+
+
+implementation
+
+uses Cliente, Funcoes, Funcoesdb, DTMPRINCIPAL;
+
+{$R *.dfm}
+procedure TTClienteI.btnCancelarClick(Sender: TObject);
+begin
+    CanClose := False;
+    if MessageBox(Handle,'Deseja realmente sair da aplicação?','Fechar o formulário? ',MB_ICONQUESTION+MB_YESNO)=IDYES then
+    CanClose := True;
+
+    if CanClose = True then
+        Close;
+
+
+end;
+
+procedure TTClienteI.btnSalvarClick(Sender: TObject);
+begin
+
+if Empty(edtNome.Text) then
+  begin
+     EnviaMensagem('Informe o Nome!', 'Informação...', mtInformation,[mbOK] );
+   //  messagedlg('Informe o Nome!',mtConfirmation,[mbok],0);
+     if edtNome.CanFocus then
+         edtNome.SetFocus;
+     Exit;
+  end;
+
+  if Empty(edtRg.Text) then
+  begin
+     EnviaMensagem('Informe o RG!', 'Informação...', mtInformation,[mbOK] );
+     if edtRg.CanFocus then
+         edtRg.SetFocus;
+     Exit;
+  end;
+
+  with DTMPRINCIPAL.TDTMPrincipal.Qgeneric do
+  begin
+     case AcaoTela[1] of
+       'I': begin
+             Close;
+             SQL.Clear;
+             SQL.Add('INSERT INTO CLIENTE(NOME, RG, ATIVO)');
+             SQL.Add('VALUES('+ StringTextSql(edtNome.Text));
+             SQL.Add(', '+ StringTextSql(edtRg.Text));
+             sql.Add((', ' + BooleanTextSql(cbAtivo.Checked)));
+//             case rdFiltro.ItemIndex of
+//               0 : SQL.Add(', 1');
+//               1 : SQL.Add(', 0');
+//             end;
+             SQL.Add(')');
+             ExecSQL;
+             EnviaMensagem('Cliente '+ edtNome.Text  +' está cadastrado!', 'Atenção!', mtInformation,[mbOK] );
+       end;
+     end;
+  end;
+  Close;
+
+end;
+
+procedure TTClienteI.ChamaTela(pAcaoTela: string );
+begin
+ {  TELA  CLIENTE RECEBE A CLASSE QUE CRIA A APLICAÇÃO }
+ TClienteI := TTClienteI.Create(Application);
+ with TClienteI do
+ begin
+   {I - inserir
+    C - Consultar
+    E - Editar}
+   AcaoTela := pAcaoTela;
+   if AcaoTela = 'C' then
+
+   ShowModal;
+ end;
+ FreeAndNil(TClienteI);
+ {  tudo que cria na memproa TEM que ser liberado }
+end;
+
+
+
+procedure TTClienteI.DesabilitaComponentes;
+begin
+
+end;
+
+procedure TTClienteI.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+   Self := nil;
+end;
+
+
+end.

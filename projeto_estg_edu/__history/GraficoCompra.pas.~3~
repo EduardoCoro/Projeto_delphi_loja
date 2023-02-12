@@ -1,0 +1,66 @@
+unit GraficoCompra;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, TeEngine, Series, TeeProcs, Chart, DBChart, StdCtrls, Buttons,
+  ExtCtrls;
+
+type
+  TTGraficoCompra = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    btnCancelar: TBitBtn;
+    btnAntes: TBitBtn;
+    btnDepois: TBitBtn;
+    GraficoCompra: TDBChart;
+    Series1: TBarSeries;
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnDepoisClick(Sender: TObject);
+    procedure btnAntesClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  TGraficoCompra: TTGraficoCompra;
+
+implementation
+
+{$R *.dfm}
+
+procedure TTGraficoCompra.btnAntesClick(Sender: TObject);
+begin
+  if GraficoCompra.Page = 1 then
+    btnAntes.Enabled := False
+  else
+  begin
+    btnDepois.Enabled := True;
+    GraficoCompra.PreviousPage;
+    if GraficoCompra.Page = 1 then
+      btnAntes.Enabled := False;
+  end;
+end;
+
+procedure TTGraficoCompra.btnCancelarClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TTGraficoCompra.btnDepoisClick(Sender: TObject);
+begin
+  if GraficoCompra.Page = GraficoCompra.NumPages then
+    btnDepois.Enabled := False
+  else
+  begin
+    GraficoCompra.NextPage;
+    btnAntes.Enabled := True;
+     if GraficoCompra.Page = GraficoCompra.NumPages then
+       btnDepois.Enabled := False;
+  end;
+end;
+
+end.

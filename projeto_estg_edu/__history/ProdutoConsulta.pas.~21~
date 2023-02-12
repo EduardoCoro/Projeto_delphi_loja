@@ -1,0 +1,186 @@
+unit ProdutoConsulta;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Grids, DBGrids, StdCtrls, ExtCtrls, Buttons, DB, ADODB;
+
+type
+  TTProdutoC = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    btnTransferir: TButton;
+    btnConsulta: TButton;
+    btnFechar: TBitBtn;
+    btnedit: TBitBtn;
+    btnLimpar: TButton;
+    edPesquisa: TEdit;
+    lblDescricao: TLabel;
+    rdFiltro: TRadioGroup;
+    DBGrid1: TDBGrid;
+    DTSProdutoC: TDataSource;
+    QProdutoC: TADOQuery;
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnFecharClick(Sender: TObject);
+    procedure btnLimparClick(Sender: TObject);
+    procedure DBGrid1TitleClick(Column: TColumn);
+    procedure edPesquisaKeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+    CanClose : Boolean;
+    ColunaPesquisa : string;
+  public
+    { Public declarations }
+
+    procedure ChamaTela;
+  end;
+
+var
+  TProdutoC: TTProdutoC;
+
+implementation
+
+uses DTMPRINCIPAL, Funcoes, Funcoesdb;
+
+{$R *.dfm}
+
+
+procedure TTProdutoC.ChamaTela;
+begin
+ TProdutoC := TTProdutoC.Create(Application);
+ With TProdutoC do
+ begin
+  ShowModal;
+ end;
+ FreeAndNil(TProdutoC);
+
+end;
+
+
+procedure TTProdutoC.btnFecharClick(Sender: TObject);
+begin
+  CanClose := False;
+    if MessageBox(Handle,'Deseja realmente fechar a Consulta?','Fechar o formulário? ',MB_ICONQUESTION+MB_YESNO)=IDYES then
+      CanClose := True;
+
+    if CanClose = True then
+        Close;
+end;
+
+procedure TTProdutoC.btnLimparClick(Sender: TObject);
+begin
+   edPesquisa.Clear;
+   QProdutoC.Close;
+
+  rdFiltro.Buttons[0].Checked:=True;
+  rdFiltro.Buttons[1].Checked:=False;
+  rdFiltro.Buttons[2].Checked:=False;
+    rdFiltro.Refresh;
+end;
+
+procedure TTProdutoC.ChamaTela;
+begin
+ TProdutoC := TTProdutoC.Create(Application);
+ With TProdutoC do
+ begin
+  ShowModal;
+ end;
+ FreeAndNil(TProdutoC);
+
+end;
+
+
+procedure TTProdutoC.DBGrid1TitleClick(Column: TColumn);
+ var
+  I : Integer;
+begin
+   ColunaPesquisa := Column.FieldName;
+   lblDescricao.Caption := 'Digite um ' + Column.Title.Caption + ' ou * para todos e Tecle Enter';
+   btnLimpar.Click;
+
+   for I := 0 to DBGrid1.Columns.Count - 1 do
+   begin
+      if DBGrid1.Columns[I].FieldName = ColunaPesquisa then
+          DBGrid1.Columns[I].Title.Font.Color := clRed
+      else
+          DBGrid1.Columns[I].Title.Font.Color := clBlack;
+
+   end;
+end;
+
+procedure TTProdutoC.edPesquisaKeyPress(Sender: TObject; var Key: Char);
+function GetCondicao():string; // FUNÇÃO P/ PEGAR A SINTAXE DE ACORDO COM O QUE USUÁRIO PREENCHEU
+  var aux : string;
+  begin
+    if edPesquisa.Tag = 0 then
+    begin
+      aux := 'WHERE ';
+      edPesquisa.Tag := 1;
+    end
+    else
+      aux := 'AND ';
+    Result := aux;
+  end;
+var
+  aux : Integer;
+begin
+         edPesquisa.Tag := 0;
+   if (key = #13) and not Empty(edPesquisa.Text) then   // identificação do botão ENTER
+   begin
+     with QProdutoC do
+     begin  // inserçao do comando no sql
+        Close;
+        SQL.Clear;
+        SQL.Add('SELECT COD_PRODUTO, DESCRICAO, PRECO, DATA_VALIDADE, ATIVO');
+        SQL.Add('FROM PRODUTO');
+
+        aux := edPesquisa.Tag;
+        // IDENTIFICAR A SELEÇÃO DE ATIVO,INATIVO
+        case rdFiltro.ItemIndex of
+          0 : SQL.Add(GetCondicao + ' ATIVO = 1');
+          1 : SQL.Add(GetCondicao + ' ATIVO = 0');
+        end;
+
+        if edPesquisa.Text <> '*' then
+        begin                                    // codigo do
+          if (ColunaPesquisa = 'COD_PRODUTO') or (ColunaPesquisa = 'PRECO') OR (ColunaPesquisa = 'DATA_VALIDADE') then
+            SQL.Add(GetCondicao + ColunaPesquisa + ' = ' + StringTextSql(ColocaPonto(edPesquisa.Text)))
+          else
+            SQL.Add(GetCondicao + ' DESCRICAO LIKE ' + StringTextSql('%' + edPesquisa.Text + '%'));
+
+        end;
+
+
+
+        Open;
+     end;
+   end;
+end;
+
+procedure TTProdutoC.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+   Action := caFree;
+  Self := nil;
+end;
+
+procedure TTProdutoC.FormCreate(Sender: TObject);
+begin
+
+   rdFiltro.Buttons[0].Checked:= True;
+   QProdutoC.Close;
+end;
+
+   {
+    with  QProdutoC do
+ begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT DESCRICAO, PRECO, DATA_VALIDADE, ATIVO FROM PRODUTO');
+    Open;
+ end;  }
+
+
+end.
